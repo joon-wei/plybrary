@@ -108,7 +108,7 @@ plt.show()
 # plot position value of stocks
 plt.figure(figsize=(10, 6))
 for ticker, data in portfolio.items():
-    market_value = data['position_value']
+    market_value = data['historical_value']
     plt.plot(market_value.index, market_value.values, label = ticker)
 plt.legend()
 plt.xlabel('Date')
