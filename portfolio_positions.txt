@@ -1,9 +1,0 @@
-tickers = ["INTC",'TSM',"VOO","AAPL","AMD","FNGU"]
-positions = [18,14,12,24,5,2]
-purchase_dates = ["2021-07-06", "2023-07-03", "2023-07-03", "2021-02-18", "2021-02-05", "2024-07-26"]
-
-sgx_tickers = ['CJLU', 'C38U']
-sgx_positions = [2400, 1100]
-sgx_purchase_dates = ['2023-06-28', '2023-07-04']
-
-
