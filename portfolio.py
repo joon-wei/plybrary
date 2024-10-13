@@ -1,16 +1,20 @@
 from modules import sgx
+from modules import stock_analysis as sa
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 
-def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates,today):
+def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates):
     
     portfolio = {}
     
     # Latest USDSGD fx rate
     USDSGD = yf.download('USDSGD=X', period='5d')
     USDSGD_rate = USDSGD['Close'].iloc[-1] if not USDSGD.empty else None
+    
+    today = datetime.today()
+    one_year_ago = today - timedelta(365)
     
     # Add US position in SGD
     for ticker, position, purchase_date in zip(tickers, positions, purchase_dates):
@@ -21,36 +25,46 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
         mv = price * position
         historical_price = stock['Adj Close'] * USDSGD_rate
         historical_value = historical_price * position
+        if historical_price.index.min() > one_year_ago:
+            ytd_price = sa.historical_price(ticker,one_year_ago,today)
+        else:
+            ytd_price = historical_price[historical_price.index >= one_year_ago]
         
         portfolio[ticker] = {'position':position,
                              'price':price,
                              'purchase_date':purchase_date,
                              'market_value':mv,
                              'historical_price':historical_price,
-                             'historical_value':historical_value
+                             'historical_value':historical_value,
+                             'YTD_price':ytd_price
                              }
     
     # Add SG positions
     for sgx_ticker, sgx_position, sgx_purchase_date in zip(sgx_tickers, sgx_positions, sgx_purchase_dates):
         
-        sgx_stock = sgx.download(sgx_ticker,sgx_purchase_date,today)
+        sgx_stock = sgx.download(sgx_ticker,sgx_purchase_date,today.strftime('%Y-%m-%d'))
         
         sgx_price = sgx_stock['Adj_Close'].iloc[-1]
         sgx_mv = sgx_price * sgx_position
         sgx_historical_price = sgx_stock['Adj_Close']
         sgx_historical_value = sgx_historical_price * sgx_position
+        if sgx_historical_price.index.min() > one_year_ago:
+            ytd_data = sgx.download(sgx_ticker,one_year_ago.strftime('%Y-%m-%d'),today.strftime('%Y-%m-%d'))
+            sgx_ytd_price = ytd_data['Adj_Close']
+        else:
+            sgx_ytd_price = sgx_historical_price[sgx_historical_price.index >= one_year_ago]
         
         portfolio[sgx_ticker] = {'position':sgx_position,
                                  'price':sgx_price,
                                  'purchase_date':sgx_purchase_date,
                                  'market_value':sgx_mv,
                                  'historical_price':sgx_historical_price,
-                                 'historical_value':sgx_historical_value
+                                 'historical_value':sgx_historical_value,
+                                 'YTD_price':sgx_ytd_price
                                  }
     
     # Calculate weightage of each stock
     total_market_value = sum(stock['market_value'] for stock in portfolio.values())
-    
     for stock in portfolio:
         portfolio[stock]['weightage'] = portfolio[stock]['market_value']/total_market_value
     
@@ -58,38 +72,37 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
 
 
 # Enter positions here
-tickers = ['AAPL', 'AMZN', 'NFLX', 'TSLA', 'RDDT']
-positions = [25, 18, 15, 40, 50]
-purchase_dates = ["2023-07-06", "2023-07-03", "2023-07-03", "2023-02-18", "2023-02-05"]
+tickers = ["INTC",'TSM',"VOO","AAPL","AMD","FNGU"]
+positions = [18,14,12,24,5,2]
+purchase_dates = ["2021-07-06", "2023-07-03", "2023-07-03", "2021-02-18", "2021-02-05", "2024-07-26"]
 
-sgx_tickers = ['D05', 'O39', 'OV8']
-sgx_positions = [200, 200, 2000]
-sgx_purchase_dates = ['2023-06-28', "2023-01-03", "2023-02-12"]
+sgx_tickers = ['CJLU', 'C38U']
+sgx_positions = [2400, 1100]
+sgx_purchase_dates = ['2023-06-28', '2023-07-04']
 
-today = datetime.today().strftime('%Y-%m-%d')
 
 # Create portfolio (in SGD)
-portfolio = portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates,today)
+portfolio = portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates)
 
-#%%
-#Total market value
+#%% Total market value
 totalValue = sum(stock['market_value'] for stock in portfolio.values())
 print(f"Total portfolio value: ${totalValue:.2f} SGD")
 
-#%%
-# Asset weightage
-labels = list(portfolio.keys())
-weightages = [stock['weightage'] for stock in portfolio.values()]
+#%% Asset weightage
+def portfolio_weightage():
+    labels = list(portfolio.keys())
+    weightages = [stock['weightage'] for stock in portfolio.values()]
+    
+    # Plotting the pie chart
+    plt.figure(figsize=(6, 6.5))
+    plt.pie(weightages, labels=labels, autopct='%1.1f%%', startangle=90)
+    plt.title('Portfolio Weightage Distribution')
+    plt.axis('equal') 
+    plt.show()
+    
+portfolio_weightage()
 
-# Plotting the pie chart
-plt.figure(figsize=(6, 6.5))
-plt.pie(weightages, labels=labels, autopct='%1.1f%%', startangle=90)
-plt.title('Portfolio Weightage Distribution')
-plt.axis('equal') 
-plt.show()
-
-#%%
-# plot price of stocks
+#%% plot price history of stocks
 plt.figure(figsize=(10, 6))
 for ticker, data in portfolio.items():
     plt.plot(data['historical_price'], label = ticker)
@@ -100,8 +113,7 @@ plt.title('Price history of my stocks')
 plt.grid()
 plt.show()
 
-#%%
-# plot position value of stocks
+#%% plot historical position value of stocks
 plt.figure(figsize=(10, 6))
 for ticker, data in portfolio.items():
     market_value = data['historical_value']
@@ -113,8 +125,7 @@ plt.title('Historical market value of my stocks')
 plt.grid()
 plt.show()
 
-#%%
-# position value of individual stock
+#%% historical position value of individual stock
 ticker = 'C38U'
 plt.figure(figsize=(10, 6))
 plt.plot(portfolio[ticker]['position_value'])
@@ -123,3 +134,6 @@ plt.gca().yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
 plt.title(f'{ticker} value in portfolio')
 plt.grid()
 plt.show()
+
+
+

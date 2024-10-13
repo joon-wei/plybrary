@@ -3,6 +3,7 @@
 Comes with some simple tools to do some analysis (mainly on equity stocks right now).
 
 Currently working on the portfolio script which stores stock data of your equities in one dictionary which would allow for easy performance analysis. Fill up the tickers, purchase quantity and date purchased into the lists. 
+The bottom cells gives plots on the general stats of the portfolio such as weightage and historical performance of each asset. 
 
 ### stock_analysis
 A simple module which consists of some basic tools to analyse single stocks. Mainly just a manipulation of yfinance, which may not be useful for bigger projects but is convenient to do some quick checking in a single line.
@@ -12,7 +13,7 @@ Most of the modules should be parsed with the ticker name, start date and end da
 ### sgx
 A webscraper for sg.finance.yahoo which aims to replicate the functionality of yfinance.download(), returning a dataframe of open and close prices and volume for the stock, with date as the index column.
 May need to update the User Agent to what works on your machine.
-Of course this depends on the yahoo page working, for some reason the table containing data of the stocks (C38U) just vanish for no reason. Lets see if they fix the page soon.
+Of course this depends on the yahoo page working, for some reason the table containing data of the stocks (C38U) just vanish from time to time. If the script returns with an empty dataframe, check the url is correct and working.
 
 ```
 stock = sgx.download(ticker,start_date,end_date)
@@ -21,4 +22,6 @@ stock = sgx.download(ticker,start_date,end_date)
 ### Casino
 Included my toto results webscraper for the lols. Probably will expand in more gambling related scripts in the future.
 
-
+### Wishlist
+YTD analysis on portfolio: annualised returns, VaR
+Options data on equity: tracking open volume
