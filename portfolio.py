@@ -72,13 +72,13 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
 
 
 # Enter positions here
-tickers = ["INTC",'TSM',"VOO","AAPL","AMD","FNGU"]
-positions = [18,14,12,24,5,2]
-purchase_dates = ["2021-07-06", "2023-07-03", "2023-07-03", "2021-02-18", "2021-02-05", "2024-07-26"]
+tickers = ['AAPL', 'AMZN', 'NFLX', 'TSLA', 'RDDT']
+positions = [25, 18, 15, 40, 50]
+purchase_dates = ["2023-07-06", "2023-07-03", "2023-07-03", "2023-02-18", "2023-02-05"]
 
-sgx_tickers = ['CJLU', 'C38U']
-sgx_positions = [2400, 1100]
-sgx_purchase_dates = ['2023-06-28', '2023-07-04']
+sgx_tickers = ['D05', 'O39', 'OV8']
+sgx_positions = [200, 200, 2000]
+sgx_purchase_dates = ['2023-06-28', "2023-01-03", "2023-02-12"]
 
 
 # Create portfolio (in SGD)
