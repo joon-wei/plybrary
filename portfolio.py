@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 import yfinance as yf
 from datetime import datetime, timedelta
+import numpy as np
 
 def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates):
     
@@ -29,6 +30,8 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
             ytd_price = sa.historical_price(ticker,one_year_ago,today)
         else:
             ytd_price = historical_price[historical_price.index >= one_year_ago]
+        ytd_returns = np.log(ytd_price/ytd_price.shift(1))
+        ytd_returns = ytd_returns[1:]
         
         portfolio[ticker] = {'position':position,
                              'price':price,
@@ -36,7 +39,8 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
                              'market_value':mv,
                              'historical_price':historical_price,
                              'historical_value':historical_value,
-                             'YTD_price':ytd_price
+                             'YTD_price':ytd_price,
+                             'YTD_returns':ytd_returns
                              }
     
     # Add SG positions
@@ -44,23 +48,26 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
         
         sgx_stock = sgx.download(sgx_ticker,sgx_purchase_date,today.strftime('%Y-%m-%d'))
         
-        sgx_price = sgx_stock['Adj_Close'].iloc[-1]
-        sgx_mv = sgx_price * sgx_position
-        sgx_historical_price = sgx_stock['Adj_Close']
-        sgx_historical_value = sgx_historical_price * sgx_position
-        if sgx_historical_price.index.min() > one_year_ago:
+        price = sgx_stock['Adj_Close'].iloc[-1]
+        mv = price * sgx_position
+        historical_price = sgx_stock['Adj_Close']
+        historical_value = historical_price * sgx_position
+        if historical_price.index.min() > one_year_ago:
             ytd_data = sgx.download(sgx_ticker,one_year_ago.strftime('%Y-%m-%d'),today.strftime('%Y-%m-%d'))
-            sgx_ytd_price = ytd_data['Adj_Close']
+            ytd_price = ytd_data['Adj_Close']
         else:
-            sgx_ytd_price = sgx_historical_price[sgx_historical_price.index >= one_year_ago]
+            ytd_price = historical_price[historical_price.index >= one_year_ago]
+        ytd_returns = np.log(ytd_price/ytd_price.shift(1))
+        ytd_returns = ytd_returns[1:]
         
         portfolio[sgx_ticker] = {'position':sgx_position,
-                                 'price':sgx_price,
+                                 'price':price,
                                  'purchase_date':sgx_purchase_date,
-                                 'market_value':sgx_mv,
-                                 'historical_price':sgx_historical_price,
-                                 'historical_value':sgx_historical_value,
-                                 'YTD_price':sgx_ytd_price
+                                 'market_value':mv,
+                                 'historical_price':historical_price,
+                                 'historical_value':historical_value,
+                                 'YTD_price':ytd_price,
+                                 'YTD_returns':ytd_returns
                                  }
     
     # Calculate weightage of each stock
@@ -72,13 +79,13 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
 
 
 # Enter positions here
-tickers = ["INTC",'TSM',"VOO","AAPL","AMD","FNGU"]
-positions = [18,14,12,24,5,2]
-purchase_dates = ["2021-07-06", "2023-07-03", "2023-07-03", "2021-02-18", "2021-02-05", "2024-07-26"]
+tickers = ['AAPL', 'AMZN']
+positions = [25, 18]
+purchase_dates = ["2023-07-06", "2023-07-03"]
 
-sgx_tickers = ['CJLU', 'C38U']
-sgx_positions = [2400, 1100]
-sgx_purchase_dates = ['2023-06-28', '2023-07-04']
+sgx_tickers = ['D05']
+sgx_positions = [200]
+sgx_purchase_dates = ['2023-06-28']
 
 
 # Create portfolio (in SGD)
