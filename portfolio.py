@@ -74,7 +74,10 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
     total_market_value = sum(stock['market_value'] for stock in portfolio.values())
     for stock in portfolio:
         portfolio[stock]['weightage'] = portfolio[stock]['market_value']/total_market_value
-    
+        
+        # Calculate annualised returns
+        portfolio[stock]['annualised_returns'] = ((portfolio[stock]['YTD_returns'].mean() + 1) ** len(portfolio[stock]['YTD_returns'])) - 1
+        
     return portfolio
 
 
@@ -109,6 +112,10 @@ def portfolio_weightage():
     
 portfolio_weightage()
 
+#%% Annualised return of portfolio
+portfolio_annualised_return = sum(stock['annualised_returns'] * stock['weightage'] for stock in portfolio.values())
+print(f'Overall portfolio annualised_return: {portfolio_annualised_return:.2%}')
+
 #%% plot price history of stocks
 plt.figure(figsize=(10, 6))
 for ticker, data in portfolio.items():
@@ -133,14 +140,12 @@ plt.grid()
 plt.show()
 
 #%% historical position value of individual stock
-ticker = 'C38U'
+ticker = 'AMZN'
 plt.figure(figsize=(10, 6))
-plt.plot(portfolio[ticker]['position_value'])
+plt.plot(portfolio[ticker]['historical_value'])
 plt.gca().xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=10))  
 plt.gca().yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
 plt.title(f'{ticker} value in portfolio')
 plt.grid()
 plt.show()
-
-
 
