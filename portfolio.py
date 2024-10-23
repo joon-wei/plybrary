@@ -1,7 +1,6 @@
 from modules import sgx
 from modules import stock_analysis as sa
 import matplotlib.pyplot as plt
-import matplotlib.ticker
 import yfinance as yf
 from datetime import datetime, timedelta
 import numpy as np
@@ -90,7 +89,6 @@ sgx_tickers = ['D05', 'O39', 'OV8']
 sgx_positions = [200, 200, 2000]
 sgx_purchase_dates = ['2023-06-28', "2023-01-03", "2023-02-12"]
 
-
 # Create portfolio (in SGD)
 portfolio = portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates)
 
@@ -140,11 +138,9 @@ plt.grid()
 plt.show()
 
 #%% historical position value of individual stock
-ticker = 'AMZN'
+ticker = 'NFLX'
 plt.figure(figsize=(10, 6))
 plt.plot(portfolio[ticker]['historical_value'])
-plt.gca().xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=10))  
-plt.gca().yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=5))
 plt.title(f'{ticker} value in portfolio')
 plt.grid()
 plt.show()
