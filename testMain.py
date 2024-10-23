@@ -65,7 +65,7 @@ plt.show()
 # annualised returns
 from modules import stock_analysis as sa
 
-ticker = "VOO"
+ticker = "AMZN"
 
 annualised_rtn = sa.annualised_return(ticker)
 print(f"\nAnnualised return for {ticker}: {annualised_rtn}")

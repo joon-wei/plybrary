@@ -2,7 +2,6 @@ import yfinance as yf
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date, timedelta
-import pandas as pd
 
 
 def latest_price(ticker):

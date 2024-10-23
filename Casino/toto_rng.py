@@ -19,8 +19,8 @@ def generate(x):
         print(f'Numbers in most_frequent: {count_most}\n') 
     
 # Main
-least_frequent = [39,46,19,17,47,14,31]
-most_frequent = [1,37,44,12,28,15,10]
+least_frequent = [46,47,29,39,19,14,18]
+most_frequent = [1,37,15,28,12,44,10]
 
 numbers = least_frequent + most_frequent
 
