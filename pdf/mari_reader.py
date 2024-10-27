@@ -34,7 +34,7 @@ def pull_records(transactions, lines): # transactions: empty list to store data,
 def read_mari():
     transactions = []
     
-    with pdfplumber.open(filedir) as pdf:
+    with pdfplumber.open(file_dir) as pdf:
         page = pdf.pages[1]
         cropped_page = page.within_bbox((40,204,553,743)) 
     
@@ -61,16 +61,22 @@ def read_mari():
 
 
 # Processing starts
-file_name = 'Oct2024'
-# filepath = '/home/flrrub/Documents'
-filepath = 'C:\Stuff\kjw onedrive\OneDrive\My Documents\Stonks\mari data'
-filedir = os.path.join(filepath,f'{file_name}.pdf')
+file_name = 'Oct 2024' 
+
+file_path = os.path.join(os.getcwd(),'bank_statements')
+if not os.path.exists(file_path):
+    os.makedirs(file_path) # place PDF statement here
+
+file_dir = os.path.join(file_path,f'{file_name}.pdf') # main dir of the pdf statement
+csv_file_name = f'Mari_{file_name}.csv'
 
 transactions = read_mari()
 df = pd.DataFrame(transactions)
 
-csv_file_name = f'Mari_{file_name}.csv'
-df.to_csv(os.path.join(filepath,csv_file_name), index=False)
+# write to csv file
+with open(os.path.join(file_path,csv_file_name), 'w', newline = '') as file:
+    file.write(file_name + "\n")
+    df.to_csv(file, index=False)
 
 
 
