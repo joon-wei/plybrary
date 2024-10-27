@@ -27,7 +27,11 @@ numbers = least_frequent + most_frequent
 generate(5)
 
 #%%
-full_range = list(range(1,50))
+def rng(n, x): # n = number of numbers generated, x = how many tix generated
+    for _ in range(x):
+        numbers = random.sample(range(1, 50), n) 
+        numbers.sort()
+        print(numbers)
+        
 
-rng = random.sample(full_range, 6)
-print(rng)
+rng(6,2)
