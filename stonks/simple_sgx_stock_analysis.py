@@ -8,7 +8,7 @@ last_month = today - relativedelta(months=12)
 today = today.strftime('%Y-%m-%d')
 last_month = last_month.strftime('%Y-%m-%d')
 
-ticker = 'S29'
+ticker = 'CJLU'
 stock = sgx.download(ticker,last_month,today)
 
 #%%

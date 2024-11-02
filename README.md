@@ -23,5 +23,6 @@ stock = sgx.download(ticker,start_date,end_date)
 Included my toto results webscraper for the lols. Probably will expand in more gambling related scripts in the future.
 
 ### Wishlist
-YTD analysis on portfolio: annualised returns, VaR
+portfolio revamped script.
+refine mari_reader
 Options data on equity: tracking open volume

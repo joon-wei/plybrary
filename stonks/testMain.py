@@ -1,3 +1,8 @@
+from modules import stock_analysis as sa
+
+stock = sa.latest_price('SPY')
+
+
 #%%
 # historical var
 from modules import stock_analysis as sa

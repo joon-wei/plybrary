@@ -15,7 +15,7 @@ def download(ticker,start_date,end_date):
     
     # Update user-agent as needed
     url = f'https://sg.finance.yahoo.com/quote/{ticker}.SI/history/?period1={unix_start_date}&period2={unix_end_date}'
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'}
     print(f'Data retrieved from URL: {url}')
     
     result = requests.get(url,headers=headers)

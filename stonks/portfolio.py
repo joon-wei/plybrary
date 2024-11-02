@@ -81,13 +81,13 @@ def portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_pur
 
 
 # Enter positions here
-tickers = ['AAPL', 'AMZN', 'NFLX', 'TSLA', 'RDDT']
-positions = [25, 18, 15, 40, 50]
-purchase_dates = ["2023-07-06", "2023-07-03", "2023-07-03", "2023-02-18", "2023-02-05"]
+tickers = ["INTC",'TSM',"VOO","AAPL","AMD","FNGU"]
+positions = [18,14,12,24,5,2]
+purchase_dates = ["2021-07-06", "2023-07-03", "2023-07-03", "2021-02-18", "2021-02-05", "2024-07-26"]
 
-sgx_tickers = ['D05', 'O39', 'OV8']
-sgx_positions = [200, 200, 2000]
-sgx_purchase_dates = ['2023-06-28', "2023-01-03", "2023-02-12"]
+sgx_tickers = []
+sgx_positions = []
+sgx_purchase_dates = []
 
 # Create portfolio (in SGD)
 portfolio = portfolio(tickers,positions,purchase_dates,sgx_tickers,sgx_positions,sgx_purchase_dates)
@@ -138,7 +138,7 @@ plt.grid()
 plt.show()
 
 #%% historical position value of individual stock
-ticker = 'NFLX'
+ticker = 'AMD'
 plt.figure(figsize=(10, 6))
 plt.plot(portfolio[ticker]['historical_value'])
 plt.title(f'{ticker} value in portfolio')
