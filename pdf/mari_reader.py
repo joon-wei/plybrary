@@ -21,6 +21,7 @@ while True:
     
     elif user_input.lower() == 'n':
         print('csv not generated.')
+        break
     
     else:
         print('Enter a valid key (y/n): ')
