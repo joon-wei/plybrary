@@ -1,6 +1,5 @@
 import pdfplumber
 import pandas as pd
-import os
 import re
 
 def pull_records(transactions, lines): # transactions: empty list to store data, lines: formated extracted text of the pdf page
@@ -31,7 +30,7 @@ def pull_records(transactions, lines): # transactions: empty list to store data,
     
     return transactions
 
-def read_mari():
+def read_mari(file_dir):
     transactions = []
     
     with pdfplumber.open(file_dir) as pdf:
@@ -51,22 +50,8 @@ def read_mari():
             lines = text.strip().split('\n')
             
             transactions = pull_records(transactions, lines)
+            df = pd.DataFrame(transactions)
+            df['Amount'] = df['Amount'] * -1
     
-    return transactions
+    return df
 
-
-# Processing starts
-file_name = 'Oct 2024' 
-
-file_path = os.path.join(os.getcwd(),'bank_statements')
-file_dir = os.path.join(file_path,f'{file_name}.pdf') # main dir of the pdf statement
-csv_file_name = f'Mari_{file_name}.csv'
-
-transactions = read_mari()
-df = pd.DataFrame(transactions)
-df['Amount'] = df['Amount'] * -1
-
-# write to csv file
-with open(os.path.join(file_path,csv_file_name), 'w', newline = '') as file:
-    file.write(file_name + "\n")
-    df.to_csv(file, index=False)

@@ -2,7 +2,8 @@ import yfinance as yf
 from modules import stock_analysis as sa
 from datetime import datetime, timedelta
 import numpy as np
-        
+import matplotlib.pyplot as plt
+
 def portfolio_sgd(tickers,postions,purchase_dates):            
     portfolio = {}
     
@@ -52,19 +53,18 @@ def add_YTD(portfolio):
     one_year_ago = today - timedelta(365)
     
     for ticker, data in portfolio.items():
-        #print(ticker)
         if data['historical_price'].index.min() > one_year_ago:
-            #print('not enough data for ytd')
             ytd_price = sa.historical_price(ticker,start_date=one_year_ago,end_date=today)
         else:
-            #print('enough data for ytd')
             ytd_price = data['historical_price'][data['historical_price'].index >= one_year_ago]
         
         ytd_log_returns = np.log(ytd_price/ytd_price.shift(1))
         ytd_log_returns = ytd_log_returns[1:]
+        annualised_return = ((ytd_log_returns.mean() + 1) ** len(ytd_log_returns)) - 1
         
         portfolio[ticker]['ytd_price'] = ytd_price
         portfolio[ticker]['ytd_log_returns'] = ytd_log_returns
+        portfolio[ticker]['annualised_return'] = annualised_return
     
 #%% Create portfolio
 # works for SGX listed tickers too
@@ -79,12 +79,52 @@ portfolio = portfolio_sgd(tickers,positions,purchase_dates)
 total_portfolio_value = sum(stock['market_value'] for stock in portfolio.values())
 print(f"Total portfolio value: ${total_portfolio_value:.2f} SGD")
 
+#%% Asset weightage   
+def portfolio_weightage():
+    labels = list(portfolio.keys())
+    weightages = [stock['weightage'] for stock in portfolio.values()]
+    
+    # Plotting the pie chart
+    plt.figure(figsize=(6, 6.5))
+    plt.pie(weightages, labels=labels, autopct='%1.1f%%', startangle=90)
+    plt.title('Portfolio Weightage Distribution')
+    plt.axis('equal') 
+    plt.show()
+    
+portfolio_weightage()
+
 #%% Add YTD data
 add_YTD(portfolio)  
 
-    
-    
-    
-    
-    
+#%% Print annualised returns
+print('Annualised Return for each ticker:')
+for ticker, data in portfolio.items():
+    print(f'{ticker}: {data["annualised_return"] * 100:.2f}%')
 
+    
+print('Portfolio weighted annualised return:',
+      sum(stock['annualised_return'] * stock['weightage'] for stock in portfolio.values()).round(4) * 100,
+      '%')
+    
+#%% plot price history of stocks
+plt.figure(figsize=(10, 6))
+for ticker, data in portfolio.items():
+    plt.plot(data['historical_price'], label = ticker)
+plt.legend()
+plt.xlabel('Date')
+plt.ylabel('Price SGD')
+plt.title('Price history of my stocks')
+plt.grid()
+plt.show()
+
+#%% plot historical position value of stocks
+plt.figure(figsize=(10, 6))
+for ticker, data in portfolio.items():
+    market_value = data['historical_value']
+    plt.plot(market_value.index, market_value.values, label = ticker)
+plt.legend()
+plt.xlabel('Date')
+plt.ylabel('Price SGD')
+plt.title('Historical market value of my stocks')
+plt.grid()
+plt.show() 
