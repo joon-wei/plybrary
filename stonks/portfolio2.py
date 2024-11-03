@@ -69,9 +69,9 @@ def add_YTD(portfolio):
 #%% Create portfolio
 # works for SGX listed tickers too
 
-tickers = ["INTC",'TSM',"VOO","AAPL","AMD","FNGU",'CJLU', 'C38U']
-positions = [18,14,12,24,5,2,2400,1100]
-purchase_dates = ["2021-07-06", "2023-07-03", "2023-07-03", "2021-02-18", "2021-02-05", "2024-07-26", '2023-06-28', '2023-07-04']
+tickers = ['AAPL', 'AMZN', 'NFLX', 'TSLA', 'RDDT','D05', 'O39', 'OV8']
+positions = [25, 18, 15, 40, 50, 200, 200, 2000]
+purchase_dates = ["2023-07-06", "2023-07-03", "2023-07-03", "2023-02-18", "2023-02-05", '2023-06-28', "2023-01-03", "2023-02-12"]
 
 portfolio = portfolio_sgd(tickers,positions,purchase_dates)
 
