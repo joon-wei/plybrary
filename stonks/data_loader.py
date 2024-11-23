@@ -23,7 +23,8 @@ data['Timestamp'] = data['Timestamp'].dt.tz_localize(None)
 
 
 # Append to database table 'stock'
-conn = sqlite3.connect('C:/Stuff/kjw onedrive/OneDrive/My Documents/Python/plybrary/database/dabase.db')
+db_dir = os.path.join(os.getcwd(),'database\\dabase.db')
+conn = sqlite3.connect(db_dir)
 data.to_sql('stock', conn, if_exists='append', index=False)
 
 
