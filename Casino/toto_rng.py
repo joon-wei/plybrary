@@ -19,12 +19,22 @@ def generate(x):
         print(f'Numbers in most_frequent: {count_most}\n') 
     
 # Main
-least_frequent = [46,47,29,39,19,14,18]
-most_frequent = [1,37,15,28,12,44,10]
+# least_frequent = [46,47,29,39,19,14,18]
+# most_frequent = [1,37,15,28,12,44,10]
+# [12,15,28,39,44,46] winning combo
+
+#%% Cutoff 5 years
+
+least_frequent = [47,29,19,14,18]
+most_frequent = [1,37,15,12,44,10]
+
+
+#least_frequent = [46,29,47,14,39,19,11]
+#most_frequent = [37,1,28,15,12,10,44]
 
 numbers = least_frequent + most_frequent
 
-generate(5)
+generate(1)
 
 #%%
 def rng(n, x): # n = number of numbers generated, x = how many tix generated
@@ -34,4 +44,4 @@ def rng(n, x): # n = number of numbers generated, x = how many tix generated
         print(numbers)
         
 
-rng(6,2)
+rng(6,1)

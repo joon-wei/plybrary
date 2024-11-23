@@ -20,7 +20,7 @@ winningNumbers_list = []
 
 # Iterate over each <tr> tag
 # index tr_tags[2:12] for first 10 results
-for tr_tag in tr_tags[2:12]:
+for tr_tag in tr_tags[2:22]:
     # Find all <td> tags within the <tr> tag
     td_tags = tr_tag.find_all("td")
 
@@ -38,7 +38,7 @@ for tr_tag in tr_tags[2:12]:
 adNumber_list = []
 
 # Iterate over each <tr> tag
-for tr_tag in tr_tags[2:12]:
+for tr_tag in tr_tags[2:22]:
     # Find all <td> tags within the <tr> tag
     td_tags = tr_tag.find_all("td")
 
@@ -56,7 +56,7 @@ for tr_tag in tr_tags[2:12]:
 date_list = []
 
 # Iterate over each <tr> tag
-for tr_tag in tr_tags[2:12]:
+for tr_tag in tr_tags[2:22]:
     # Find all <td> tags within the <tr> tag
     td_tags = tr_tag.find_all("td")
 

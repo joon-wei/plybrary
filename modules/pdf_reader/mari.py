@@ -26,7 +26,7 @@ def pull_records(transactions, lines): # transactions: empty list to store data,
         elif line == "Card Payment" or line == "Instant Checkout":
             continue 
         else:
-            description += " " + line
+            description += " " + line  #if no match, text is stored as 'description' until a match is found
     
     return transactions
 
@@ -40,7 +40,14 @@ def read_mari(file_dir):
         text = cropped_page.extract_text()
         lines = text.strip().split('\n')
         
-        transactions = pull_records(transactions, lines)
+        # Keep only lines after "-Purchase-"
+        purchase_index = next((i for i, line in enumerate(lines) if line.strip() == "-Purchase-"), None)
+        if purchase_index is not None:
+            lines_after_purchase = lines[purchase_index + 1:]
+        else:
+            lines_after_purchase = []
+        
+        transactions = pull_records(transactions, lines_after_purchase)
         
         for i in range(2,len(pdf.pages) -1):     # get records from pages 3 till 2nd last page
             page = pdf.pages[i]
