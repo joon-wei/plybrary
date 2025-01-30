@@ -30,7 +30,7 @@ def add_stoch_rsi(dataframe,window=14):
 #%% set ticker and timeframe
 symbol = 'ETH/USDT'
 timeframe = '1h'
-start_time = '2025-01-01'
+start_time = '2025-01-29'
 end_time = '2025-01-30'
 
 start_time_unix = database.create_timecode(start_time)
