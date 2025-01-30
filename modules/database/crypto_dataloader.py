@@ -84,18 +84,3 @@ def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None
     df = pd.read_sql(query, conn, params=params)
     conn.close()
     return df
-
-#%%
-
-# #print('Supported timeframes:',exchange.timeframes)
-# symbol = 'SOL/USDT'
-# timeframe = '1h'
-# start_time = create_timecode('2024-01-01')
-# end_time = create_timecode('2025-01-30')
-
-# ohlcv = download_crypto_data(symbol,timeframe,start_time,end_time)
-# print('Download from Binance successful')
-
-# # Insert into database
-# insert_crypto_data(ohlcv,timeframe)
-# print('Insert into table crypto_{} successful'.format(timeframe))
