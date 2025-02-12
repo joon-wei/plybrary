@@ -2,7 +2,7 @@ from modules import pdf_reader
 import os
 from datetime import datetime
 
-file_name = 'Dec2024_Mari' 
+file_name = 'Jan2025_Mari' 
 
 file_path = os.path.join(os.getcwd(),'bank_statements')
 file_dir = os.path.join(file_path,f'{file_name}.pdf') # main dir of the pdf statement

@@ -35,9 +35,11 @@ def generate(x):
 # least_frequent = [47,29,46,25,14,39,19]
 # most_frequent = [37,1,28,10,12,15,44]
 
-least_frequent = [47,29,25,14,46,39,21]
-most_frequent = [37,1,10,49,28,12,44]
+# least_frequent = [47,29,25,14,46,39,21]
+# most_frequent = [37,1,10,49,28,12,44]
 
+least_frequent = [47,19,23,39,33,14,11]
+most_frequent = [28,37,49,1,12,10,15]
 
 numbers = least_frequent + most_frequent
 
