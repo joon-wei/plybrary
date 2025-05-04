@@ -41,7 +41,8 @@ def read_mari(file_dir):
         lines = text.strip().split('\n')
         
         # Keep only lines after "-Purchase-"
-        purchase_index = next((i for i, line in enumerate(lines) if line.strip() == "-Purchase-"), None)
+        #purchase_index = next((i for i, line in enumerate(lines) if line.strip() == "-Purchase-"), None)
+        purchase_index = next((i for i, line in enumerate(lines) if line.strip() == "Purchase"), None) # 2nd Apr: looks like they changed to "Purchase" from march onwards
         if purchase_index is not None:
             lines_after_purchase = lines[purchase_index + 1:]
         else:

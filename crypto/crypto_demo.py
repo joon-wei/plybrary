@@ -2,7 +2,6 @@ from modules import database
 from modules import simulation
 import mplfinance as mpf
 import pandas as pd
-# import numpy as np
 
 def add_rsi(dataframe, window=14):
     window_length = window
@@ -28,10 +27,10 @@ def add_stoch_rsi(dataframe,window=14):
     dataframe.dropna(subset=['StochRSI'], inplace=True)
     
 #%% set ticker and timeframe
-symbol = 'SOL/USDT'
+symbol = 'BTC/USDT'
 timeframe = '5m'
-start_time = '2025-02-08'
-end_time = '2025-02-13'
+start_time = '2025-01-01'
+end_time = '2025-02-01'
 
 start_time_unix = database.create_timecode(start_time)
 end_time_unix = database.create_timecode(end_time)
@@ -70,13 +69,13 @@ mpf.plot(data,
 
 
 #%% Trade simulation
-simulation_data = simulation.add_long_sltp(
+trade_simulation = simulation.add_long_sltp(
     data, 
-    trade_size=50,
-    trade_start='2025-02-06 01:10:00', 
-    stop_loss=0.5, 
+    trade_size=100,
+    trade_start='2024-01-01 08:00:00', 
+    stop_loss=1, 
     take_profit=0.30,
-    leverage = 10
+    leverage = 1
     )
 
 

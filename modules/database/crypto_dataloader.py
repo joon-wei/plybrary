@@ -59,10 +59,9 @@ def insert_crypto_data(dataframe,timeframe):
     conn.commit()
     conn.close()
 
-def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None, limit=1000):
+def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None):
     db_dir = os.path.join(os.getcwd(),'database//dabase.db')
     conn = sqlite3.connect(db_dir)
-    #cursor = conn.cursor()
     
     query = 'SELECT * FROM crypto_{} WHERE 1=1'.format(timeframe)
     params = []
@@ -78,9 +77,35 @@ def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None
         query += ' AND Timestamp <= ?'
         params.append(end_time)
         
-    query += ' ORDER BY Timestamp ASC LIMIT ?'
-    params.append(limit)
+    query += ' ORDER BY Timestamp ASC'
     
     df = pd.read_sql(query, conn, params=params)
     conn.close()
     return df
+
+
+# def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None, limit=1000):
+#     db_dir = os.path.join(os.getcwd(),'database//dabase.db')
+#     conn = sqlite3.connect(db_dir)
+#     #cursor = conn.cursor()
+    
+#     query = 'SELECT * FROM crypto_{} WHERE 1=1'.format(timeframe)
+#     params = []
+#     if symbol:
+#         query += ' AND Symbol = ?'
+#         params.append(symbol)
+    
+#     if start_time:
+#         query += ' AND Timestamp >= ?'
+#         params.append(start_time)
+    
+#     if end_time:
+#         query += ' AND Timestamp <= ?'
+#         params.append(end_time)
+        
+#     query += ' ORDER BY Timestamp ASC LIMIT ?'
+#     params.append(limit)
+    
+#     df = pd.read_sql(query, conn, params=params)
+#     conn.close()
+#     return df

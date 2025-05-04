@@ -38,9 +38,9 @@ plt.show()
 from modules import stock_analysis as sa
 import matplotlib.pyplot as plt
 
-ticker = "MSFT"
+ticker = "SPY"
 start_date = "2023-01-01"
-end_date = "2024-09-22"
+end_date = "2024-01-01"
 
 log_rtns = sa.log_returns(ticker, start_date, end_date)
 
@@ -54,9 +54,9 @@ plt.show()
 # arithmetic returns
 from modules import stock_analysis as sa
 
-ticker = "AMD"
-start_date = "2024-01-01"
-end_date = "2024-09-22" 
+ticker = "SPY"
+start_date = "2023-01-01"
+end_date = "2024-01-01" 
 
 rtn = sa.returns(ticker, start_date, end_date)
 
@@ -70,7 +70,7 @@ plt.show()
 # annualised returns
 from modules import stock_analysis as sa
 
-ticker = "AMZN"
+ticker = "SPY"
 
 annualised_rtn = sa.annualised_return(ticker)
 print(f"\nAnnualised return for {ticker}: {annualised_rtn}")

@@ -54,14 +54,14 @@ def loop_dates(start_date, end_date):
     while current_date <= end_date:
         current_date_str = current_date.strftime('%Y-%m-%d 19:00:00')
         next_date = current_date + timedelta(days=1)
-        next_date_str = next_date.strftime('%Y-%m-%d 00:00:00')
+        next_date_str = next_date.strftime('%Y-%m-%d 19:00:00')
         yield current_date_str, next_date_str
         current_date = next_date
 
 #%% Single scanario
-symbol = 'SOL/USDT'
+symbol = 'BTC/USDT'
 timeframe = '5m'
-start_time = '2025-02-10 19:00:00'
+start_time = '2024-01-01 19:00:00'
 end_time = '2025-02-11 00:00:00'
 
 #%% extract from dabase
@@ -94,15 +94,15 @@ plt.title('Scenarios')
 plt.show()
 
 #%% Multiple dates scenario
-symbol = 'SOL/USDT'
+symbol = 'BTC/USDT'
 timeframe = '5m'
-scenario_start = '2025-01-07'
-scenario_end = '2025-01-14'
-stop_losses = get_array(0.02,0.1,0.01)
-leverages = get_array(1, 10, 1)
+scenario_start = '2024-01-01'
+scenario_end = '2025-01-01'
+stop_losses = get_array(0.1,0.2,0.02)
+leverages = get_array(12, 20, 1)
 
+#%%
 results = []
-
 for date,next_date in loop_dates(scenario_start, scenario_end):
     data = database.pull_crypto_data(symbol,timeframe,date,next_date)
     data = data.drop(columns=['Timezone'])
@@ -114,7 +114,7 @@ for date,next_date in loop_dates(scenario_start, scenario_end):
                                      stop_loss_values=stop_losses,
                                      leverage_values=leverages,
                                      take_profit=0.1,
-                                     strategy='long'
+                                     strategy='short'
                                      )
     results.append(scenarios)
     print(f'Simulation for {date} to {next_date} complete')
@@ -126,9 +126,9 @@ print('Simulation complete.')
 pivot_table = pd.crosstab(index=[all_scenarios['Leverage'], all_scenarios['Stop_Loss %']], columns=all_scenarios['Exit_Reason'])
 pivot_table.reset_index(inplace=True)
 
-#%% Bar char
+# Bar chart
 pivot_table.set_index(['Leverage','Stop_Loss %'], inplace=True)
-pivot_table.plot(kind='bar', stacked=True, figsize=(25,15), colormap='viridis')
+pivot_table.plot(kind='bar', stacked=True, figsize=(20,10), colormap='viridis')
 
 plt.xlabel("Leverage & Stop Loss %")
 plt.ylabel("Count of Exit Reasons")
