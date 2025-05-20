@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['crypto\\crypto_demo.py', 'crypto\\crypto_scenarios.py', 'modules\\simulation\\simulation.py', 'pdf\\mari_reader.py', 'Casino\\toto_rng.py']
+recent_files = ['stonks\\annualised_return.py']
 
 [main]
 version = 0.2.0

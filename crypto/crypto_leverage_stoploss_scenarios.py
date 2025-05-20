@@ -61,7 +61,7 @@ def loop_dates(start_date, end_date):
 #%% Single scanario
 symbol = 'BTC/USDT'
 timeframe = '5m'
-start_time = '2024-01-01 19:00:00'
+start_time = '2025-01-01 19:00:00'
 end_time = '2025-02-11 00:00:00'
 
 #%% extract from dabase
@@ -70,16 +70,16 @@ data = data.drop(columns=['Timezone'])
 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
 data.set_index('Timestamp', inplace=True)
 
-#%% Single scenario simulation
-stop_losses = get_array(0.02,0.1,0.01)
-leverages = get_array(1, 10, 1)
+#%% Single scenario simulation (fixed time frame, with ability to select trade start time)
+stop_losses = get_array(0.2,0.3,0.01)
+leverages = get_array(5, 10, 1)
 
 scenario = simulate_sl_leverage(data,
                      trade_size=50,
-                     trade_start='2025-02-10 19:00:00',
+                     trade_start='2025-01-01 19:00:00',
                      stop_loss_values=stop_losses,
                      leverage_values=leverages,
-                     take_profit=0.1,
+                     take_profit=0.50,
                      strategy='long'
                      )
 
@@ -93,13 +93,13 @@ sns.heatmap(df_pivot, annot=True, cmap='icefire_r', center=0)
 plt.title('Scenarios')
 plt.show()
 
-#%% Multiple dates scenario
+#%% Multiple dates scenario (multiple dates, one trade every day)
 symbol = 'BTC/USDT'
 timeframe = '5m'
-scenario_start = '2024-01-01'
-scenario_end = '2025-01-01'
+scenario_start = '2025-05-01'
+scenario_end = '2025-05-20'
 stop_losses = get_array(0.1,0.2,0.02)
-leverages = get_array(12, 20, 1)
+leverages = get_array(5, 10, 1)
 
 #%%
 results = []
@@ -109,12 +109,12 @@ for date,next_date in loop_dates(scenario_start, scenario_end):
     data['Timestamp'] = pd.to_datetime(data['Timestamp'])
     data.set_index('Timestamp', inplace=True)
     scenarios = simulate_sl_leverage(data,
-                                     trade_size=50,
+                                     trade_size=100,
                                      trade_start=date,
                                      stop_loss_values=stop_losses,
                                      leverage_values=leverages,
                                      take_profit=0.1,
-                                     strategy='short'
+                                     strategy='long'
                                      )
     results.append(scenarios)
     print(f'Simulation for {date} to {next_date} complete')
