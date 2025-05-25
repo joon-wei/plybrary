@@ -6,6 +6,9 @@ import os
 
 exchange = ccxt.binance()
 #print('Supported timeframes:',exchange.timeframes)
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+db_dir = os.path.join(base_dir,'..','..', 'database/dabase.db')
 #%%
 def create_timecode(time_string):
     #exchange = ccxt.binance()
@@ -60,7 +63,17 @@ def insert_crypto_data(dataframe,timeframe):
     conn.close()
 
 def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None):
-    db_dir = os.path.join(os.getcwd(),'database//dabase.db')
+    # try:
+    #     db_dir = os.path.join(os.getcwd(),'database/dabase.db')
+    #     print('trying:', db_dir)
+    #     conn = sqlite3.connect(db_dir)
+    # except:
+    #     print('first directory unsuccessful')
+    #     db_dir = os.path.join(os.path.dirname(os.getcwd()),'database/dabase.db')
+    #     print('trying:', db_dir)
+    #     conn = sqlite3.connect(os.getcwd())
+    
+    print(db_dir)
     conn = sqlite3.connect(db_dir)
     
     query = 'SELECT * FROM crypto_{} WHERE 1=1'.format(timeframe)
@@ -83,6 +96,15 @@ def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None
     conn.close()
     return df
 
+def test_db_connection():
+    print('DB path: ',db_dir)
+    conn = sqlite3.connect(db_dir)
+    cursor = conn.cursor()
+    print('Tables found in database:')
+    query = "SELECT name FROM sqlite_master WHERE type='table';"
+    cursor.execute(query)
+    tables = cursor.fetchall()
+    print(tables)
 
 # def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None, limit=1000):
 #     db_dir = os.path.join(os.getcwd(),'database//dabase.db')
