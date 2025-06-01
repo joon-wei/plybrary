@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['crypto/terminal_plot_test.py', 'modules/database/crypto_dataloader.py', 'crypto/live_chart_test.py', 'crypto/live_chart2.py']
+recent_files = ['crypto/terminal_plot_test.py', 'crypto/live_price.py']
 
 [main]
 version = 0.2.0
