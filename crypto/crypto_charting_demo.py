@@ -28,8 +28,8 @@ def add_stoch_rsi(dataframe,window=14):
     
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
-timeframe = '1d'
-start_time = '2025-01-31'
+timeframe = '5m'
+start_time = '2025-05-20'
 end_time = '2025-05-21' # not inclusive
 
 start_time_unix = database.create_timecode(start_time)

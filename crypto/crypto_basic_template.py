@@ -1,13 +1,12 @@
 # Basic template to download or pull data from database
-
 from modules import database
 import pandas as pd
 
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
 timeframe = '5m'
-start_time = '2025-05-18'
-end_time = '2025-05-21' # not inclusive
+start_time = '2025-06-01'
+end_time = '2025-06-08' # not inclusive
 
 start_time_unix = database.create_timecode(start_time)
 end_time_unix = database.create_timecode(end_time)

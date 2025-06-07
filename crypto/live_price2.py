@@ -10,12 +10,14 @@ nest_asyncio.apply()
 
 df = pd.DataFrame(columns=['timestamp','price'])
 latest_trade = None
+wait = 10
 
 async def trade_listener():
     global latest_trade
     uri = 'wss://fstream.binance.com:443/ws/btcusdt@aggTrade'
     async with websockets.connect(uri) as websocket:
         print("Connected to websocket")
+	#print(f'Update interval: {wait}s')
         
         while True:
             try:
@@ -61,13 +63,10 @@ async def trade_processor():
         if len(df) > 50:
             df = df.iloc[-50:]
             
-        await asyncio.sleep(10)
+        await asyncio.sleep(wait)
         
 
 async def main():
     await asyncio.gather(trade_listener(),trade_processor())
             
 asyncio.run(main())
-
-
-
