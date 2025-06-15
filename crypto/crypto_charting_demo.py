@@ -2,7 +2,77 @@ from modules import database
 from modules import simulation
 import mplfinance as mpf
 import pandas as pd
+import numpy as np
+    
+#%% set ticker and timeframe
+symbol = 'BTC/USDT'
+timeframe = '1m'
+start_time = '2025-06-15'
+end_time = '2025-06-16' # not inclusive
 
+#%% download data from exchange
+start_time_unix = database.create_timecode(start_time)
+end_time_unix = database.create_timecode(end_time)
+
+downloaded_data = database.download_crypto_data(symbol,timeframe,start_time_unix,end_time_unix)
+print('Download from Binance successful')
+
+#%% Insert into dabase
+database.insert_crypto_data(downloaded_data,timeframe)
+print('Insert into table crypto_{} successful'.format(timeframe))
+
+#%% Pull data from dabase
+data = database.pull_crypto_data(symbol,timeframe,start_time,end_time)
+
+data = data.drop(columns=['Timezone'])
+data['Timestamp'] = pd.to_datetime(data['Timestamp'])
+data.set_index('Timestamp', inplace=True)
+
+
+#%% Charting with fixed linear trend line (using highest and lowest point)
+data_trend = data.copy()
+data_trend = data_trend.iloc[-30:]
+
+def get_linear_line(df, column:str):
+    idx1 = df[column].idxmax()
+    val1 = df.loc[idx1,column]
+    
+    idx2 = df[column].idxmin()
+    val2 = df.loc[idx2,column]
+    
+    trend_line = pd.Series(np.nan, index=df.index)      # Create empty series and fill up high and low values
+    trend_line.loc[idx1] = val1
+    trend_line.loc[idx2] = val2
+    
+    trend_line = simulation.math.linear_extrapolate(trend_line)    # extrapolate in linear 
+    
+    return trend_line
+
+
+high_trend_line = get_linear_line(data_trend,'High')
+low_trend_line = get_linear_line(data_trend, 'Low')
+#close_trend_line = get_linear_line(data_trend,'Close')
+
+apds = [
+        mpf.make_addplot(high_trend_line, type='line', color='blue', panel=0, width=2, label='High'),
+        mpf.make_addplot(low_trend_line, type='line', color='red', panel=0, width=2, label='Low')
+        #mpf.make_addplot(close_trend_line, type='line', color='black', panel=0, width=2, label='Close')
+        ]
+
+mpf.plot(data_trend, 
+         type='candle', 
+         volume=True,
+         style='yahoo',
+         title = f'{symbol} | {start_time} to {end_time} | {timeframe}',
+         #mav=(100,200),
+         addplot=apds,
+         figsize=(25,15),
+         returnfig=True
+         )
+
+# https://github.com/matplotlib/mplfinance/blob/master/examples/addplot.ipynb
+
+#%% Charting with RSI
 def add_rsi(dataframe, window=14):
     window_length = window
     
@@ -25,31 +95,7 @@ def add_stoch_rsi(dataframe,window=14):
     
     dataframe.drop(columns=['RSI_min','RSI_max'], inplace=True)
     dataframe.dropna(subset=['StochRSI'], inplace=True)
-    
-#%% set ticker and timeframe
-symbol = 'BTC/USDT'
-timeframe = '5m'
-start_time = '2025-05-20'
-end_time = '2025-05-21' # not inclusive
 
-start_time_unix = database.create_timecode(start_time)
-end_time_unix = database.create_timecode(end_time)
-
-#%% download data from exchange
-downloaded_data = database.download_crypto_data(symbol,timeframe,start_time_unix,end_time_unix)
-print('Download from Binance successful')
-
-#%% Insert into dabase
-database.insert_crypto_data(downloaded_data,timeframe)
-print('Insert into table crypto_{} successful'.format(timeframe))
-
-#%% Pull data from dabase
-data = database.pull_crypto_data(symbol,timeframe,start_time,end_time)
-
-data = data.drop(columns=['Timezone'])
-data['Timestamp'] = pd.to_datetime(data['Timestamp'])
-data.set_index('Timestamp', inplace=True)
-#%% Charting
 add_rsi(data, window=14)
 add_stoch_rsi(data, window=14)
 

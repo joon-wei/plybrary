@@ -16,6 +16,14 @@ def create_timecode(time_string):
     time -= 28800000 # convert to UTC+0
     return time
 
+def get_datetime(unix_timecode,modifier):
+    #Get datetime string from unix timecode. Modifier to adjust number of hours to add. 
+    if modifier:
+        time = pd.to_datetime((unix_timecode + (modifier * 3600000)), unit='ms')
+    else:
+        time = time = pd.to_datetime(unix_timecode, unit='ms')
+    return time
+
 def download_crypto_data(symbol,timeframe,start_time,end_time): 
     #exchange = ccxt.binance()
     all_data = []

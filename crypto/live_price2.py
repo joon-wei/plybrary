@@ -10,7 +10,7 @@ nest_asyncio.apply()
 
 df = pd.DataFrame(columns=['timestamp','price'])
 latest_trade = None
-wait = 10
+wait = 2
 
 async def trade_listener():
     global latest_trade
@@ -60,8 +60,8 @@ async def trade_processor():
             except Exception as e:
                 print('processor error: ', e)
         
-        if len(df) > 50:
-            df = df.iloc[-50:]
+        if len(df) > 200:
+            df = df.iloc[-200:]
             
         await asyncio.sleep(wait)
         

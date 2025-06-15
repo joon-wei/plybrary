@@ -4,14 +4,14 @@ import pandas as pd
 
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
-timeframe = '5m'
-start_time = '2025-06-01'
-end_time = '2025-06-08' # not inclusive
+timeframe = '1h'
+start_time = '2025-01-29'
+end_time = '2025-06-15' # not inclusive
 
+#%% download data from exchange
 start_time_unix = database.create_timecode(start_time)
 end_time_unix = database.create_timecode(end_time)
 
-#%% download data from exchange
 downloaded_data = database.download_crypto_data(symbol,timeframe,start_time_unix,end_time_unix)
 print('Download from Binance successful')
 
