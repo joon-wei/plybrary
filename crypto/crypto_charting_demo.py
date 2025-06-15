@@ -3,12 +3,13 @@ from modules import simulation
 import mplfinance as mpf
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LinearRegression
     
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
-timeframe = '1m'
-start_time = '2025-06-15'
-end_time = '2025-06-16' # not inclusive
+timeframe = '1h'
+start_time = '2025-06-13'
+end_time = '2025-06-15' # not inclusive
 
 #%% download data from exchange
 start_time_unix = database.create_timecode(start_time)
@@ -31,7 +32,7 @@ data.set_index('Timestamp', inplace=True)
 
 #%% Charting with fixed linear trend line (using highest and lowest point)
 data_trend = data.copy()
-data_trend = data_trend.iloc[-30:]
+#data_trend = data_trend.iloc[-30:]
 
 def get_linear_line(df, column:str):
     idx1 = df[column].idxmax()
@@ -65,12 +66,87 @@ mpf.plot(data_trend,
          style='yahoo',
          title = f'{symbol} | {start_time} to {end_time} | {timeframe}',
          #mav=(100,200),
-         addplot=apds,
-         figsize=(25,15),
+         #addplot=apds,
+         #figsize=(25,15),
          returnfig=True
          )
 
 # https://github.com/matplotlib/mplfinance/blob/master/examples/addplot.ipynb
+
+#%% Charting peak and troughs
+def get_peaks_troughs(df, column: str, mode: str):
+    series = [np.nan] * len(df)
+    
+    if mode.lower() == 'peak':
+        for i in range(len(df)-1):
+            if data[column].iloc[i] > data[column].iloc[i+1]:
+                series[i] = data[column].iloc[i]
+    
+    elif mode.lower() == 'trough':
+        for i in range(len(df)-1):
+            if data[column].iloc[i] < data[column].iloc[i+1]:
+                series[i] = data[column].iloc[i]
+    
+    else:
+        print("Invalid mode. Input either 'peak' or 'trough'.")
+    
+    return series
+
+peaks = get_peaks_troughs(data, column='High', mode='peak')
+troughs = get_peaks_troughs(data, column='Low', mode='trough')
+
+apds = [
+        mpf.make_addplot(peaks, type='scatter', marker = 'v', color = 'green'),
+        mpf.make_addplot(troughs, type='scatter', marker = '^', color = 'red')
+        ]
+
+mpf.plot(data,
+         type='candle',
+         volume=True,
+         style='yahoo',
+         addplot=apds,
+         title = f'{symbol} | {start_time} to {end_time} | {timeframe}| Peaks and Troughs',
+         returnfig=True
+         )
+
+
+#%% Charting linear regression based on peak and troughs
+peaks = get_peaks_troughs(data, column = 'High', mode = 'peak')
+y_values = np.array(peaks)
+
+x_values = np.arange(len(peaks))
+
+non_nan_mask = ~np.isnan(y_values)
+
+y_clean = y_values[non_nan_mask]
+x_clean = x_values[non_nan_mask]
+
+X = x_clean.reshape(-1,1)  # scikit-learn expects X to be a 2D array (number_of_samples, number_of_features)
+
+model = LinearRegression()
+model.fit(X,y_clean)
+
+y_predicted_for_X = model.predict(X)
+
+y_predicted_full = np.full(len(peaks),np.nan)
+y_predicted_full[x_clean] = y_predicted_for_X   # this plot will show up as broken up line due to nan values
+
+#y_predicted_extrapolated = simulation.linear_extrapolate(y_predicted_full)
+
+apds = [
+        mpf.make_addplot(peaks, type='scatter', marker = 'v', color = 'green', markersize = 100),
+        mpf.make_addplot(y_predicted_full, type='line', color = 'blue', label='y_predicted')    
+        ]
+
+mpf.plot(data,
+         type='candle',
+         volume=True,
+         style='yahoo',
+         addplot=apds,
+         title = f'{symbol} | {start_time} to {end_time} | {timeframe}| Linear Regression',
+         figsize = (15,10),
+         returnfig=True
+         )
 
 #%% Charting with RSI
 def add_rsi(dataframe, window=14):
@@ -123,5 +199,7 @@ trade_simulation = simulation.add_long_sltp(
     take_profit=0.30,
     leverage = 1
     )
+
+
 
 
