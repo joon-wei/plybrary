@@ -2,14 +2,14 @@ from modules import database
 from modules import simulation
 import mplfinance as mpf
 import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
+#import numpy as np
+# from sklearn.linear_model import LinearRegression
     
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2025-06-13'
-end_time = '2025-06-15' # not inclusive
+start_time = '2025-06-15'
+end_time = '2025-06-18' # not inclusive
 
 #%% download data from exchange
 start_time_unix = database.create_timecode(start_time)
@@ -31,28 +31,12 @@ data.set_index('Timestamp', inplace=True)
 
 
 #%% Charting with fixed linear trend line (using highest and lowest point)
-data_trend = data.copy()
-#data_trend = data_trend.iloc[-30:]
 
-def get_linear_line(df, column:str):
-    idx1 = df[column].idxmax()
-    val1 = df.loc[idx1,column]
-    
-    idx2 = df[column].idxmin()
-    val2 = df.loc[idx2,column]
-    
-    trend_line = pd.Series(np.nan, index=df.index)      # Create empty series and fill up high and low values
-    trend_line.loc[idx1] = val1
-    trend_line.loc[idx2] = val2
-    
-    trend_line = simulation.math.linear_extrapolate(trend_line)    # extrapolate in linear 
-    
-    return trend_line
+high_points = simulation.get_high_low(data, 'High')
+high_trend_line = simulation.linear_extrapolate(high_points)
 
-
-high_trend_line = get_linear_line(data_trend,'High')
-low_trend_line = get_linear_line(data_trend, 'Low')
-#close_trend_line = get_linear_line(data_trend,'Close')
+low_points = simulation.get_high_low(data, 'Low')
+low_trend_line = simulation.linear_extrapolate(low_points)
 
 apds = [
         mpf.make_addplot(high_trend_line, type='line', color='blue', panel=0, width=2, label='High'),
@@ -60,44 +44,25 @@ apds = [
         #mpf.make_addplot(close_trend_line, type='line', color='black', panel=0, width=2, label='Close')
         ]
 
-mpf.plot(data_trend, 
+mpf.plot(data, 
          type='candle', 
          volume=True,
          style='yahoo',
          title = f'{symbol} | {start_time} to {end_time} | {timeframe}',
          #mav=(100,200),
-         #addplot=apds,
+         addplot=apds,
          #figsize=(25,15),
          returnfig=True
          )
 
 # https://github.com/matplotlib/mplfinance/blob/master/examples/addplot.ipynb
-
 #%% Charting peak and troughs
-def get_peaks_troughs(df, column: str, mode: str):
-    series = [np.nan] * len(df)
-    
-    if mode.lower() == 'peak':
-        for i in range(len(df)-1):
-            if data[column].iloc[i] > data[column].iloc[i+1]:
-                series[i] = data[column].iloc[i]
-    
-    elif mode.lower() == 'trough':
-        for i in range(len(df)-1):
-            if data[column].iloc[i] < data[column].iloc[i+1]:
-                series[i] = data[column].iloc[i]
-    
-    else:
-        print("Invalid mode. Input either 'peak' or 'trough'.")
-    
-    return series
-
-peaks = get_peaks_troughs(data, column='High', mode='peak')
-troughs = get_peaks_troughs(data, column='Low', mode='trough')
+peaks = simulation.get_peaks_troughs(data, column='High', mode='peak', threshold=0.005)
+troughs = simulation.get_peaks_troughs(data, column='Low', mode='trough', threshold=0.005)
 
 apds = [
-        mpf.make_addplot(peaks, type='scatter', marker = 'v', color = 'green'),
-        mpf.make_addplot(troughs, type='scatter', marker = '^', color = 'red')
+        mpf.make_addplot(peaks, type='scatter', marker = 'v', color = 'green', markersize=100),
+        mpf.make_addplot(troughs, type='scatter', marker = '^', color = 'red', markersize=100)
         ]
 
 mpf.plot(data,
@@ -109,33 +74,18 @@ mpf.plot(data,
          returnfig=True
          )
 
-
 #%% Charting linear regression based on peak and troughs
-peaks = get_peaks_troughs(data, column = 'High', mode = 'peak')
-y_values = np.array(peaks)
+peaks_lr = simulation.linear_reg(peaks)     # this plot will show up as broken up line due to nan values
+peaks_lr_populated = simulation.linear_extrapolate_np(peaks_lr)
 
-x_values = np.arange(len(peaks))
-
-non_nan_mask = ~np.isnan(y_values)
-
-y_clean = y_values[non_nan_mask]
-x_clean = x_values[non_nan_mask]
-
-X = x_clean.reshape(-1,1)  # scikit-learn expects X to be a 2D array (number_of_samples, number_of_features)
-
-model = LinearRegression()
-model.fit(X,y_clean)
-
-y_predicted_for_X = model.predict(X)
-
-y_predicted_full = np.full(len(peaks),np.nan)
-y_predicted_full[x_clean] = y_predicted_for_X   # this plot will show up as broken up line due to nan values
-
-#y_predicted_extrapolated = simulation.linear_extrapolate(y_predicted_full)
+troughs_lr = simulation.linear_reg(troughs)
+troughs_lr_populated = simulation.linear_extrapolate_np(troughs_lr)
 
 apds = [
-        mpf.make_addplot(peaks, type='scatter', marker = 'v', color = 'green', markersize = 100),
-        mpf.make_addplot(y_predicted_full, type='line', color = 'blue', label='y_predicted')    
+        mpf.make_addplot(peaks, type='scatter', marker = 'v', color='green', markersize=100),
+        mpf.make_addplot(peaks_lr_populated, type='line', color='green', label='High trend line'),
+        mpf.make_addplot(troughs, type='scatter', marker = '^', color='red', markersize=100),
+        mpf.make_addplot(troughs_lr_populated, type='line',color='red', label='Low trend line')
         ]
 
 mpf.plot(data,
@@ -143,7 +93,7 @@ mpf.plot(data,
          volume=True,
          style='yahoo',
          addplot=apds,
-         title = f'{symbol} | {start_time} to {end_time} | {timeframe}| Linear Regression',
+         title = f'{symbol} | {start_time} to {end_time} | {timeframe}',
          figsize = (15,10),
          returnfig=True
          )
@@ -201,5 +151,52 @@ trade_simulation = simulation.add_long_sltp(
     )
 
 
+#%% old stuff
+# def get_linear_line(df, column:str):
+#     idx1 = df[column].idxmax()
+#     val1 = df.loc[idx1,column]
+    
+#     idx2 = df[column].idxmin()
+#     val2 = df.loc[idx2,column]
+    
+#     trend_line = pd.Series(np.nan, index=df.index)      # Create empty series and fill up high and low values
+#     trend_line.loc[idx1] = val1
+#     trend_line.loc[idx2] = val2
+    
+#     trend_line = simulation.math.linear_extrapolate(trend_line)    # extrapolate in linear 
+    
+#     return trend_line
 
 
+# def get_peaks_troughs(df, column: str, mode: str):
+#     series = [np.nan] * len(df)
+    
+#     if mode.lower() == 'peak':
+#         for i in range(len(df)-1):
+#             if data[column].iloc[i] > data[column].iloc[i+1]:
+#                 series[i] = data[column].iloc[i]
+    
+#     elif mode.lower() == 'trough':
+#         for i in range(len(df)-1):
+#             if data[column].iloc[i] < data[column].iloc[i+1]:
+#                 series[i] = data[column].iloc[i]
+    
+#     else:
+#         print("Invalid mode. Input either 'peak' or 'trough'.")
+    
+#     return series
+
+
+# def linear_extrapolate_np(array):
+#     index = np.arange(len(array))
+#     mask = ~np.isnan(array)
+#     if np.sum(mask) < 2:
+#         raise ValueError("Array has <2 y values.")
+    
+#     x0, x1 = index[mask][0], index[mask][1]
+#     y0, y1 = array[mask][0], array[mask][1]
+    
+#     slope = (y1-y0)/(x1-x0)
+#     result = y0 + slope*(index-x0)
+    
+#     return result
