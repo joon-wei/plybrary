@@ -58,3 +58,47 @@ def get_peaks_troughs(df, column: str, mode: str, threshold: float):
         print("Invalid mode. Input either 'peak' or 'trough'.")
     
     return series
+
+def add_rsi(dataframe, window=14):
+    
+    """
+    Parameters
+    ----------
+    dataframe : ohcl dataset
+    window : ticks
+    The default is 14.
+
+    Adds column of RSI values to exisiting data df.
+    """
+    
+    window_length = window
+    
+    delta = dataframe['Close'].diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.ewm(com=window_length - 1, adjust=False).mean()
+    avg_loss = loss.ewm(com=window_length - 1, adjust=False).mean()
+    rs = avg_gain/avg_loss
+    
+    dataframe['RSI'] = 100 - (100 / (1 + rs))
+    dataframe.dropna(inplace=True)
+    
+def add_stoch_rsi(dataframe,window=14):
+    """
+    Parameters
+    ----------
+    dataframe : ohcl dataset
+    window : ticks
+    The default is 14.
+    
+    Adds column of stoch RSI values to existing data df. Requires RSI values.
+    """
+    
+    stoch_rsi_period = window
+    dataframe['RSI_min'] = dataframe['RSI'].rolling(stoch_rsi_period).min()
+    dataframe['RSI_max'] = dataframe['RSI'].rolling(stoch_rsi_period).max()
+    dataframe['StochRSI'] = (dataframe['RSI'] - dataframe['RSI_min']) / (dataframe['RSI_max'] - dataframe['RSI_min'])
+    dataframe['StochRSI'] *= 100
+    
+    dataframe.drop(columns=['RSI_min','RSI_max'], inplace=True)
+    dataframe.dropna(subset=['StochRSI'], inplace=True)
