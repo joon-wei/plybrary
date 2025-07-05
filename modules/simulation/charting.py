@@ -84,6 +84,7 @@ def add_rsi(dataframe, window=14):
     dataframe.dropna(inplace=True)
     
 def add_stoch_rsi(dataframe,window=14):
+    
     """
     Parameters
     ----------
@@ -102,3 +103,22 @@ def add_stoch_rsi(dataframe,window=14):
     
     dataframe.drop(columns=['RSI_min','RSI_max'], inplace=True)
     dataframe.dropna(subset=['StochRSI'], inplace=True)
+    
+def add_bollingerbands(dataframe, column='Close', window=20, num_std=2):
+    
+    """
+    Parameters
+    ----------
+    dataframe : ohcl dataset
+    column : The default is 'Close'.
+    window : The default is 20.
+    num_std : The default is 2.
+
+    Adds columns for bollinger bands values to the existing dataset.
+
+    """
+    
+    dataframe['BB_Middle'] = dataframe[column].rolling(window=window).mean()
+    dataframe['BB_Std'] = dataframe[column].rolling(window=window).std()
+    dataframe['BB_Upper'] = dataframe['BB_Middle'] + num_std * dataframe['BB_Std']
+    dataframe['BB_Lower'] = dataframe['BB_Middle'] - num_std * dataframe['BB_Std']
