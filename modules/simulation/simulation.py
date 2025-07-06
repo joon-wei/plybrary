@@ -1,6 +1,36 @@
 import numpy as np
 import pandas as pd
 import mplfinance as mpf
+from datetime import datetime, timedelta
+
+def get_array(start, stop, step):
+    """
+    Returns an array of values between the 2 given values.
+    """
+    
+    result = []
+    value = start
+    while value <= stop:
+        result.append(round(value, 2))  # Rounding to avoid floating-point errors
+        value += step
+    return result
+
+
+def loop_dates_days(start_date, end_date, start_time = '00:00:00', end_time='00:00:00' ,days=1):
+    """
+    Loops through a date range and returns a interval as long as the number of days specified.
+    The default days is 1.
+    """
+    
+    current_date = datetime.strptime(start_date,'%Y-%m-%d').date()
+    end_date = datetime.strptime(end_date,'%Y-%m-%d').date()
+    
+    while current_date <= end_date:
+        current_date_str = current_date.strftime(f'%Y-%m-%d {start_time}')
+        next_date = current_date + timedelta(days)
+        next_date_str = next_date.strftime(f'%Y-%m-%d {start_time}')
+        yield current_date_str, next_date_str
+        current_date = next_date
 
 def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, fee=0.0005):
     """

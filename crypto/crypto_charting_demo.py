@@ -147,7 +147,6 @@ mpf.plot(data,
          returnfig=True
          )
 
-
 #%% Trade simulation
 trade_simulation = simulation.add_short_sltp_fees_graph(
     data, 
