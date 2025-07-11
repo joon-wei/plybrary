@@ -81,7 +81,7 @@ def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None
     #     print('trying:', db_dir)
     #     conn = sqlite3.connect(os.getcwd())
     
-    print(db_dir)
+    #print(db_dir)
     conn = sqlite3.connect(db_dir)
     
     query = 'SELECT * FROM crypto_{} WHERE 1=1'.format(timeframe)

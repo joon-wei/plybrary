@@ -54,9 +54,9 @@ def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, 
         entry_price = df.loc[trade_start,'Close']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
-        print(f'Entry_price: {entry_price}')
+        #print(f'Entry_price: {entry_price}')
     else:
-        print('trade_start not in data timeframe')
+        #print('trade_start not in data timeframe')
         return df
     
     df['trade_notional'] = 0.0
@@ -68,7 +68,7 @@ def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, 
     actual_price_take_profit = take_profit/leverage
     stop_loss_price = entry_price * (1 - actual_price_stop_loss) # short change here
     take_profit_price = entry_price * (1 + actual_price_take_profit) # short change here
-    print(f'Stop Loss price: {stop_loss_price}\nTake Profit Price: {take_profit_price}')
+    #print(f'Stop Loss price: {stop_loss_price}\nTake Profit Price: {take_profit_price}')
     
     trade_active = True
     for date in df.loc[trade_start:].index:
@@ -77,12 +77,12 @@ def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, 
             if price <= stop_loss_price: # short change here
                 df.loc[date, 'trade_position'] = 0
                 df.loc[date, 'exit_reason'] = 'Stop-Loss Triggered'
-                print('Stop-Loss Triggered')
+                #print('Stop-Loss Triggered')
                 trade_active = False  
             elif price >= take_profit_price: # short change here
                 df.loc[date, 'trade_position'] = 0  
                 df.loc[date, 'exit_reason'] = 'Take-Profit Reached'
-                print('Take-Profit Reached')
+                #print('Take-Profit Reached')
                 trade_active = False  
             else:
                 df.loc[date, 'trade_position'] = trade_size * leverage
