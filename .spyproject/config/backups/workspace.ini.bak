@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['crypto/crypto_charting_demo.py', 'crypto/crypto_bollinger_scenarios.py', 'modules/simulation/charting.py', 'modules/simulation/math.py', 'modules/simulation/simulation.py']
+recent_files = ['Casino/toto_analysis.py', 'modules/database/dataloader.py', 'Casino/toto_webscrape2.py']
 
 [main]
 version = 0.2.0

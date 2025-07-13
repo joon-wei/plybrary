@@ -71,15 +71,6 @@ def insert_crypto_data(dataframe,timeframe):
     conn.close()
 
 def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None):
-    # try:
-    #     db_dir = os.path.join(os.getcwd(),'database/dabase.db')
-    #     print('trying:', db_dir)
-    #     conn = sqlite3.connect(db_dir)
-    # except:
-    #     print('first directory unsuccessful')
-    #     db_dir = os.path.join(os.path.dirname(os.getcwd()),'database/dabase.db')
-    #     print('trying:', db_dir)
-    #     conn = sqlite3.connect(os.getcwd())
     
     #print(db_dir)
     conn = sqlite3.connect(db_dir)
@@ -114,7 +105,7 @@ def test_db_connection():
     tables = cursor.fetchall()
     print(tables)
 
-
+# Casino functions
 def pull_toto_latest(x=10):
     conn = sqlite3.connect(db_dir)
     
@@ -123,4 +114,48 @@ def pull_toto_latest(x=10):
     conn.close()
     return df
 
- 
+def pull_toto_data(start_date, end_date, desc=bool):
+    
+    """
+    Get records from toto table between selected dates.
+    Set desc = True to order by desc
+    """
+    
+    conn = sqlite3.connect(db_dir)
+    
+    query = 'SELECT * FROM toto WHERE 1=1'
+    params = []
+
+    if start_date:
+        query += ' AND DrawDate >= ?'
+        params.append(start_date)
+    if end_date:
+        query += ' AND DrawDate <= ?'
+        params.append(end_date)
+    if desc==True:
+        query += ' ORDER BY DrawDate DESC'
+    
+    df = pd.read_sql(query,conn, params=params)
+    conn.close()
+    print(f"Data for {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')} extracted")
+    return df
+
+def insert_toto_data(dataframe):
+    conn = sqlite3.connect(db_dir)
+    cursor = conn.cursor()
+    
+    data_tuples = [tuple(x) for x in dataframe.to_numpy()]
+    
+    insert_query = '''
+    INSERT OR IGNORE INTO toto (DrawDate, No1, No2, No3, No4, No5, No6, AddNo)
+    VALUES(?,?,?,?,?,?,?,?)
+    '''
+    
+    cursor.executemany(insert_query,data_tuples)
+    conn.commit()
+    conn.close()
+    print('Insert into toto successful.')
+    
+    
+    
+     
