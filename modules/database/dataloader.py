@@ -46,7 +46,7 @@ def download_crypto_data(symbol,timeframe,start_time,end_time):
         time.sleep(1)    
       
     ohlcv = pd.DataFrame(all_data, columns=['Timestamp','Open','High','Low','Close','Volume'])
-    ohlcv['Timestamp'] = ohlcv['Timestamp'] + 28800000 # convert to UTC+8
+    ohlcv['Timestamp'] = ohlcv['Timestamp'] + 28800000      # convert to UTC+8
     ohlcv['Timestamp'] = pd.to_datetime(ohlcv['Timestamp'], unit='ms')
     ohlcv['Timestamp'] = ohlcv['Timestamp'].astype(str)
     ohlcv['Symbol'] = symbol
