@@ -10,7 +10,7 @@ import random
 # print(latest_results)
 
 #%%
-years = 1
+years = 5
 
 today = datetime.today()
 start_date = today - relativedelta(years=years)

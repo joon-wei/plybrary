@@ -86,6 +86,7 @@ while True:
     user_input = input('Insert into database? y/n: ')
     if user_input.lower() == 'y':
         database.insert_toto_data(web_data)
+        break
     elif user_input.lower() == 'n':
         print('Web data not inserted into database.')
         break
