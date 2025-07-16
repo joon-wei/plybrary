@@ -1,0 +1,6 @@
+BTC
+complete 2024 data loaded:
+crypto_5m
+crypto_15m
+crypto_1h
+crypto_4h
