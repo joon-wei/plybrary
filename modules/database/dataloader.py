@@ -104,10 +104,10 @@ def insert_crypto_bollinger_simulations(df):
     
     insert_query = '''
     INSERT INTO crypto_simulation_bollinger ('SimulationRunDate', 'Symbol', 'TestPeriod', 'BollingerTimeframe',
-           'TradeType', 'TradeSize', 'Threshold', 'Leverage', 'StopLoss',
+           'Threshold', 'Band', 'TradeType', 'Slippage', 'TradeSize', 'Leverage', 'StopLoss',
            'TakeProfit', 'TakeProfitCount', 'StopLossCount', 'NoExitCount',
            'TotalTrades', 'WinRate', 'TotalReturn')
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     '''
     cursor.executemany(insert_query,data_tuples)
     conn.commit()

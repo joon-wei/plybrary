@@ -2,11 +2,11 @@ from modules import simulation,database
 import pandas as pd
 from datetime import timedelta,datetime
 
-#%% Long simulation 2: Low values x% under bollinger lower
+#%% simulation 2: Low values x% under bollinger lower band
 symbol = 'BTC/USDT'
 timeframe = '15m'
-start_time = '2025-01-01'
-end_time = '2025-07-01'
+start_time = '2024-01-01'
+end_time = '2025-01-01'
 
 # Bollinger bands calculated based on above timeframe
 data_initial = database.pull_crypto_data(symbol,timeframe,start_time,end_time)   
@@ -16,25 +16,32 @@ data_initial.set_index('Timestamp', inplace=True)
 simulation.add_bollingerbands(data_initial, 'Close') 
 
 # Get entry points based on threshold x
-x = 0.99
-long_entries = []
+x = 0.015
+band = 'Upper'
 
-entry_points = data_initial[data_initial['Low'] < data_initial['BB_Lower'] * x]['Low'].index
-if not entry_points.empty:
-    for item in entry_points:
-        long_entries.append(item)
+entries_list = []
+if band == 'Lower':
+    entry_points = data_initial[data_initial['Low'] < data_initial['BB_Lower']*(1-x)]['Low'].index
+    if not entry_points.empty:
+        for item in entry_points:
+            entries_list.append(item)
+elif band == 'Upper':
+    entry_points = data_initial[data_initial['High'] > data_initial['BB_Upper']*(1+x)]['High'].index
+    if not entry_points.empty:
+        for item in entry_points:
+            entries_list.append(item)
 
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
-stop_loss = 0.14
-take_profit = 0.26
+stop_loss = 0.1
+take_profit = 0.25
 leverage=20
 
 results = []
 
 # Simulate trades using 5min timeframe. Entries are still based on the above timeframe
-for date in long_entries:
+for date in entries_list:
     date_2 = date + timedelta(1)
     data = database.pull_crypto_data(symbol=symbol,timeframe='5m',start_time=str(date), end_time=str(date_2))
     timeframe_str = f'{str(date)} - {str(date_2)}'
@@ -43,7 +50,7 @@ for date in long_entries:
     data.set_index('Timestamp', inplace=True)
     #simulation.add_bollingerbands(data, 'Close')
     
-    df_sim = simulation.add_long_sltp_fees(data, 
+    df_sim = simulation.add_long_sltp_fees_graph(data, 
                                            trade_size=trade_size, 
                                            trade_start=date,
                                            stop_loss=stop_loss,
@@ -84,9 +91,11 @@ time_now = datetime.now()
 time_now = time_now.strftime('%Y-%m-%d %H:%M:%S')
 
 trade_size = 1000
-stop_losses = simulation.get_array(0.1, 0.2, 0.02)
-take_profits = simulation.get_array(0.1, 0.3, 0.02)
-leverages = simulation.get_array(20, 20, 2)
+stop_losses = simulation.get_array(0.1, 0.2, 0.05)
+take_profits = simulation.get_array(0.1, 0.3, 0.05)
+leverages = simulation.get_array(10, 20, 5)
+slippage=False
+trade_type = 'Long'
 
 sim_results = []
 scenario_results = []
@@ -96,7 +105,7 @@ for l in leverages:
         for tp in take_profits:
             print(f'leverage: {l}, sl: {sl}, tp: {tp}')
             
-            for date in long_entries:
+            for date in entries_list:
                 date_2 = date + timedelta(1)
                 data = database.pull_crypto_data(symbol=symbol,timeframe='5m',start_time=str(date), end_time=str(date_2))
                 #timeframe_str = f'{str(date)} - {str(date_2)}'
@@ -105,13 +114,24 @@ for l in leverages:
                 data.set_index('Timestamp', inplace=True)
                 #simulation.add_bollingerbands(data, 'Close')
                 
-                df_sim = simulation.add_long_sltp_fees(data, 
-                                                       trade_size=trade_size, 
-                                                       trade_start=date,
-                                                       stop_loss=sl,
-                                                       take_profit=tp,
-                                                       leverage=l
-                                                       )    # btw, entry price is the close price of the candlestick
+                if trade_type == 'Long':
+                    df_sim = simulation.add_long_sltp_fees(data, 
+                                                           trade_size=trade_size, 
+                                                           trade_start=date,
+                                                           stop_loss=sl,
+                                                           take_profit=tp,
+                                                           leverage=l,
+                                                           slippage=slippage
+                                                           )    # btw, entry price is the close price of the candlestick
+                elif trade_type == 'Short':
+                    df_sim = simulation.add_short_sltp_fees(data, 
+                                                           trade_size=trade_size, 
+                                                           trade_start=date,
+                                                           stop_loss=sl,
+                                                           take_profit=tp,
+                                                           leverage=l,
+                                                           slippage=slippage
+                                                           ) 
                 
                 exit_reason = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'exit_reason'] if df_sim['exit_reason'].notna().any() else 'No Exit'
                 return_percent = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'return'] if df_sim['exit_reason'].notna().any() else 'No Exit'
@@ -137,9 +157,11 @@ for l in leverages:
                                'Symbol':symbol,
                                'TestPeriod': test_period,
                                'BollingerTimeframe':timeframe,
-                               'TradeType':'Long',
-                               'TradeSize':trade_size,
                                'Threshold':x,
+                               'Band':band,
+                               'TradeType':trade_type,
+                               'Slippage':'False' if slippage==False else 'True',
+                               'TradeSize':trade_size,
                                'Leverage':l,
                                'StopLoss':sl,
                                'TakeProfit':tp,
@@ -156,7 +178,7 @@ for l in leverages:
 
 scenarios_df = pd.DataFrame(scenario_results)
 
-# Save results to db
+# Save results to db, insert into crypto_simulation_bollinger
 while True:
     user_input = input('Insert into db? y/n: ')
     if user_input.lower() == 'y':

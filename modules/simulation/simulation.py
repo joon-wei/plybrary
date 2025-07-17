@@ -34,7 +34,7 @@ def loop_dates_days(start_date, end_date, start_time = '00:00:00', end_time='00:
 
 
 
-def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, fee=0.0005):
+def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, slippage=False ,fee=0.0005):
     """
     Parameters
     ----------
@@ -44,6 +44,7 @@ def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, 
     stop_loss : Stop loss value. Default is 1 (100%)
     take_profit : Take Profit value. Default is 1 (100%)
     leverage : Level of leverage as an integer. Default is 1
+    slippage : False assumes the SL and TP are effective, sets the return exactly at those levels.
     fee : Fee calculated off notional value. Default is 0.0005 (0.05%)
     """
     
@@ -103,15 +104,21 @@ def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, 
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
     
     # calculate returns
-    df['return'] = df['Close'].pct_change() # short change here
+    df['return'] = df['Close'].pct_change()     # short change here
     df['return($)'] = df['return'] * df['trade_position']
+
+    if slippage == False:
+        #print('Anti-slippage is active')
+        df.loc[df['exit_reason'] == 'Take-Profit Reached','return($)'] = trade_size * take_profit
+        df.loc[df['exit_reason'] == 'Stop-Loss Triggered','return($)'] = trade_size * stop_loss * -1
+        
     df['return_with_fees'] = df['return($)'] - df['taker_fee_1'] - df['taker_fee_2']
     df['trade_capital'] = trade_size + df['return_with_fees']
     df['actual_return'] = df['trade_capital'] - trade_size
     
     return df
 
-def add_short_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, fee=0.0005):
+def add_short_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, slippage=False ,fee=0.0005):
     """
     Parameters
     ----------
@@ -180,15 +187,21 @@ def add_short_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1,
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
     
     # calculate returns
-    df['return'] = df['Close'].pct_change() * -1 # short change here
+    df['return'] = df['Close'].pct_change() * -1     # short change here
     df['return($)'] = df['return'] * df['trade_position']
+
+    if slippage == False:
+        #print('Anti-slippage is active')
+        df.loc[df['exit_reason'] == 'Take-Profit Reached','return($)'] = trade_size * take_profit
+        df.loc[df['exit_reason'] == 'Stop-Loss Triggered','return($)'] = trade_size * stop_loss * -1
+        
     df['return_with_fees'] = df['return($)'] - df['taker_fee_1'] - df['taker_fee_2']
     df['trade_capital'] = trade_size + df['return_with_fees']
     df['actual_return'] = df['trade_capital'] - trade_size
     
     return df
 
-def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, fee=0.0005):
+def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, slippage=False ,fee=0.0005):
     """
     Parameters
     ----------
@@ -210,7 +223,7 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
         entry_price = df.loc[trade_start,'Close']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
-        #print(f'Entry_price: {entry_price}')
+        print(f'Entry_price: {entry_price}')
     else:
         #print('trade_start not in data timeframe')
         return df
@@ -224,7 +237,7 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
     actual_price_take_profit = take_profit/leverage
     stop_loss_price = entry_price * (1 - actual_price_stop_loss)    # short change here
     take_profit_price = entry_price * (1 + actual_price_take_profit)    # short change here
-    #print(f'Stop Loss price: {stop_loss_price}\nTake Profit Price: {take_profit_price}')
+    print(f'Stop Loss price: {stop_loss_price}\nTake Profit Price: {take_profit_price}')
     
     trade_active = True
     for date in df.loc[trade_start:].index:
@@ -237,7 +250,7 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
                 df.loc[date,'taker_fee_1'] = df.loc[date,'trade_position'] * fee
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
                 
-                #print('Stop-Loss Triggered')
+                print('Stop-Loss Triggered')
                 trade_active = False 
                 
             elif price >= take_profit_price:    # short change here
@@ -247,7 +260,7 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
                 df.loc[date,'taker_fee_1'] = df.loc[date,'trade_position'] * fee
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
                 
-                #print('Take-Profit Reached')
+                print('Take-Profit Reached')
                 trade_active = False  
                 
             else:
@@ -259,10 +272,17 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
     # calculate returns
     df['return'] = df['Close'].pct_change() # short change here
     df['return($)'] = df['return'] * df['trade_position']
+
+    if slippage == False:
+        print('Anti-slippage is active')
+        df.loc[df['exit_reason'] == 'Take-Profit Reached','return($)'] = trade_size * take_profit
+        df.loc[df['exit_reason'] == 'Stop-Loss Triggered','return($)'] = trade_size * stop_loss * -1
+        
     df['return_with_fees'] = df['return($)'] - df['taker_fee_1'] - df['taker_fee_2']
     df['trade_capital'] = trade_size + df['return_with_fees']
     df['actual_return'] = df['trade_capital'] - trade_size
     
+    # Chart Plotting
     stop_loss_plot = mpf.make_addplot([stop_loss_price] * len(df), color='red', linestyle='--', width=1, label="Stop-Loss")
     take_profit_plot = mpf.make_addplot([take_profit_price] * len(df), color='green', linestyle='--', width=1, label="Take-Profit")
     capital_plot = mpf.make_addplot(df['trade_capital'], color='blue', width=1, secondary_y=True)
@@ -279,7 +299,7 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
     )
     return df
 
-def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, fee=0.0005):
+def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_profit=1, leverage=1, slippage=False, fee=0.0005):
     """
     Parameters
     ----------
@@ -301,7 +321,7 @@ def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_pro
         entry_price = df.loc[trade_start,'Close']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
-        #print(f'Entry_price: {entry_price}')
+        print(f'Entry_price: {entry_price}')
     else:
         #print('trade_start not in data timeframe')
         return df
@@ -315,7 +335,7 @@ def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_pro
     actual_price_take_profit = take_profit/leverage
     stop_loss_price = entry_price * (1 + actual_price_stop_loss)    # short change here
     take_profit_price = entry_price * (1 - actual_price_take_profit)    # short change here
-    #print(f'Stop Loss price: {stop_loss_price}\nTake Profit Price: {take_profit_price}')
+    print(f'Stop Loss price: {stop_loss_price}\nTake Profit Price: {take_profit_price}')
     
     trade_active = True
     for date in df.loc[trade_start:].index:
@@ -328,7 +348,7 @@ def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_pro
                 df.loc[date,'taker_fee_1'] = df.loc[date,'trade_position'] * fee
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
                 
-                #print('Stop-Loss Triggered')
+                print('Stop-Loss Triggered')
                 trade_active = False 
                 
             elif price <= take_profit_price:    # short change here
@@ -338,7 +358,7 @@ def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_pro
                 df.loc[date,'taker_fee_1'] = df.loc[date,'trade_position'] * fee
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
                 
-                #print('Take-Profit Reached')
+                print('Take-Profit Reached')
                 trade_active = False  
                 
             else:
@@ -348,11 +368,22 @@ def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_pro
                 df.loc[date,'taker_fee_2'] = df.loc[date,'trade_notional'] * fee
     
     # calculate returns
-    df['return'] = df['Close'].pct_change() * -1 # short change here
+    df['return'] = df['Close'].pct_change() * -1     # short change here
     df['return($)'] = df['return'] * df['trade_position']
+
+    if slippage == False:
+        print('Anti-slippage is active')
+        df.loc[df['exit_reason'] == 'Take-Profit Reached','return($)'] = trade_size * take_profit
+        df.loc[df['exit_reason'] == 'Stop-Loss Triggered','return($)'] = trade_size * stop_loss * -1
+        
     df['return_with_fees'] = df['return($)'] - df['taker_fee_1'] - df['taker_fee_2']
     df['trade_capital'] = trade_size + df['return_with_fees']
     df['actual_return'] = df['trade_capital'] - trade_size
+    
+    # Chart Plotting
+    stop_loss_plot = mpf.make_addplot([stop_loss_price] * len(df), color='red', linestyle='--', width=1, label="Stop-Loss")
+    take_profit_plot = mpf.make_addplot([take_profit_price] * len(df), color='green', linestyle='--', width=1, label="Take-Profit")
+    capital_plot = mpf.make_addplot(df['trade_capital'], color='blue', width=1, secondary_y=True)
     
     stop_loss_plot = mpf.make_addplot([stop_loss_price] * len(df), color='red', linestyle='--', width=1, label="Stop-Loss")
     take_profit_plot = mpf.make_addplot([take_profit_price] * len(df), color='green', linestyle='--', width=1, label="Take-Profit")
