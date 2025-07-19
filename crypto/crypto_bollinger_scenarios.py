@@ -17,7 +17,7 @@ simulation.add_bollingerbands(data_initial, 'Close')
 
 # Get entry points based on threshold x
 x = 0.015
-band = 'Upper'
+band = 'Lower'
 
 entries_list = []
 if band == 'Lower':
@@ -34,9 +34,11 @@ elif band == 'Upper':
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
-stop_loss = 0.1
+stop_loss = 0.2
 take_profit = 0.25
 leverage=20
+
+trade_type = 'Short'
 
 results = []
 
@@ -50,13 +52,22 @@ for date in entries_list:
     data.set_index('Timestamp', inplace=True)
     #simulation.add_bollingerbands(data, 'Close')
     
-    df_sim = simulation.add_long_sltp_fees_graph(data, 
-                                           trade_size=trade_size, 
-                                           trade_start=date,
-                                           stop_loss=stop_loss,
-                                           take_profit=take_profit,
-                                           leverage=leverage
-                                           )
+    if trade_type == 'Long':
+        df_sim = simulation.add_long_sltp_fees_graph(data, 
+                                               trade_size=trade_size, 
+                                               trade_start=date,
+                                               stop_loss=stop_loss,
+                                               take_profit=take_profit,
+                                               leverage=leverage
+                                               )
+    elif trade_type == 'Short':
+        df_sim = simulation.add_short_sltp_fees_graph(data, 
+                                               trade_size=trade_size, 
+                                               trade_start=date,
+                                               stop_loss=stop_loss,
+                                               take_profit=take_profit,
+                                               leverage=leverage
+                                               ) 
     
     exit_reason = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'exit_reason'] if df_sim['exit_reason'].notna().any() else 'No Exit'
     return_percent = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'return'] if df_sim['exit_reason'].notna().any() else 'No Exit'

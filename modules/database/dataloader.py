@@ -24,7 +24,10 @@ def get_datetime(unix_timecode,modifier):
         time = time = pd.to_datetime(unix_timecode, unit='ms')
     return time
 
+# =====================
 # crypto functions
+# =====================
+
 def download_crypto_data(symbol,timeframe,start_time,end_time): 
     #exchange = ccxt.binance()
     all_data = []
@@ -124,7 +127,10 @@ def test_db_connection():
     tables = cursor.fetchall()
     print(tables)
 
+
+# =====================
 # casino functions
+# =====================
 def pull_toto_latest(x=10):
     conn = sqlite3.connect(db_dir)
     
