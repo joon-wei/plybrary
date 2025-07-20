@@ -1,8 +1,14 @@
 from modules import simulation,database
 import pandas as pd
 from datetime import timedelta,datetime
+import time
 
-#%% simulation 2: Low values x% under bollinger lower band
+'''
+This simulation scenario finds entry points and enters trades based on the price reaching the lower or upper bands of bollinger bands.
+The variable x can be set to find entry points only when price is x% lower/higher then the lower/upper band.
+'''
+
+#%% Simulation 2: Find entry points
 symbol = 'BTC/USDT'
 timeframe = '15m'
 start_time = '2024-01-01'
@@ -15,27 +21,34 @@ data_initial['Timestamp'] = pd.to_datetime(data_initial['Timestamp'])
 data_initial.set_index('Timestamp', inplace=True)
 simulation.add_bollingerbands(data_initial, 'Close') 
 
-# Get entry points based on threshold x
-x = 0.015
+x = 0.01
 band = 'Lower'
 
-entries_list = []
+# entries_list = []
 if band == 'Lower':
     entry_points = data_initial[data_initial['Low'] < data_initial['BB_Lower']*(1-x)]['Low'].index
-    if not entry_points.empty:
-        for item in entry_points:
-            entries_list.append(item)
+    # if not entry_points.empty:
+    #     for item in entry_points:
+    #         entries_list.append(item)
 elif band == 'Upper':
     entry_points = data_initial[data_initial['High'] > data_initial['BB_Upper']*(1+x)]['High'].index
-    if not entry_points.empty:
-        for item in entry_points:
-            entries_list.append(item)
+    # if not entry_points.empty:
+    #     for item in entry_points:
+    #         entries_list.append(item)
 
+# Find true entry points: Bollinger values will only confirm after each candlestick is complete, hence the trade will only enter in the next candlestick i.e. 15min later
+data_initial_index_list = data_initial.index.tolist()
+true_entries_list = []
+for ep_idx in entry_points:
+    current_pos = data_initial_index_list.index(ep_idx)
+    true_entries_list.append(data_initial_index_list[current_pos + 1])
+
+del data_initial, data_initial_index_list   #free up some mem
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
-stop_loss = 0.2
-take_profit = 0.25
+stop_loss = 0.1
+take_profit = 0.2
 leverage=20
 
 trade_type = 'Long'
@@ -43,7 +56,7 @@ trade_type = 'Long'
 results = []
 
 # Simulate trades using 5min timeframe. Entries are still based on the above timeframe
-for date in entries_list:
+for date in true_entries_list:
     date_2 = date + timedelta(1)
     data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))
     timeframe_str = f'{str(date)} - {str(date_2)}'
@@ -106,19 +119,21 @@ stop_losses = simulation.get_array(0.1, 0.2, 0.05)
 take_profits = simulation.get_array(0.1, 0.3, 0.05)
 leverages = simulation.get_array(10, 20, 5)
 slippage=False
-trade_type = 'Long'
+trade_type = 'Short'
 
 sim_results = []
 scenario_results = []
+
+start_run_time = time.time()
 
 for l in leverages:
     for sl in stop_losses:
         for tp in take_profits:
             print(f'leverage: {l}, sl: {sl}, tp: {tp}')
             
-            for date in entries_list:
+            for date in true_entries_list:
                 date_2 = date + timedelta(1)
-                data = database.pull_crypto_data(symbol=symbol,timeframe='5m',start_time=str(date), end_time=str(date_2))
+                data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))   # trades are tested on 1m data
                 #timeframe_str = f'{str(date)} - {str(date_2)}'
                 data = data.drop(columns=['Timezone'])
                 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
@@ -189,6 +204,10 @@ for l in leverages:
 
 scenarios_df = pd.DataFrame(scenario_results)
 
+end_run_time = time.time()
+elapsed_time = end_run_time - start_run_time
+print(f'Process time: {elapsed_time/60:.2f} minutes ({elapsed_time:.2f} seconds).')
+
 # Save results to db, insert into crypto_simulation_bollinger
 while True:
     user_input = input('Insert into db? y/n: ')
@@ -200,4 +219,3 @@ while True:
         break
     else:
         print('Please enter a valid key. y/n: ')
-

@@ -5,9 +5,9 @@ import pandas as pd
     
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
-timeframe = '1m'
-start_time = '2024-11-01'
-end_time = '2025-01-01' # not inclusive
+timeframe = '15m'
+start_time = '2024-08-28'
+end_time = '2024-08-29' # not inclusive
 
 #%% download data from exchange
 start_time_unix = database.create_timecode(start_time)
@@ -21,14 +21,14 @@ database.insert_crypto_data(downloaded_data,timeframe)
 print('Insert into table crypto_{} successful'.format(timeframe))
 
 #%% Pull data from dabase
-data = database.pull_crypto_data(symbol,timeframe,start_time,end_time)
+data_chart = database.pull_crypto_data(symbol,timeframe,start_time,end_time)
 
-data = data.drop(columns=['Timezone'])
-data['Timestamp'] = pd.to_datetime(data['Timestamp'])
-data.set_index('Timestamp', inplace=True)
+data_chart = data_chart.drop(columns=['Timezone'])
+data_chart['Timestamp'] = pd.to_datetime(data_chart['Timestamp'])
+data_chart.set_index('Timestamp', inplace=True)
 
 #%% Default plot
-mpf.plot(data,
+mpf.plot(data_chart,
          type='candle',
          volume=True,
          style='yahoo',
@@ -38,10 +38,10 @@ mpf.plot(data,
 
 
 #%% Charting with fixed linear trend line (using highest and lowest point)
-high_points = simulation.get_high_low(data, 'High')
+high_points = simulation.get_high_low(data_chart, 'High')
 high_trend_line = simulation.linear_extrapolate(high_points)
 
-low_points = simulation.get_high_low(data, 'Low')
+low_points = simulation.get_high_low(data_chart, 'Low')
 low_trend_line = simulation.linear_extrapolate(low_points)
 
 apds = [
@@ -52,7 +52,7 @@ apds = [
         #mpf.make_addplot(close_trend_line, type='line', color='black', panel=0, width=2, label='Close')
         ]
 
-mpf.plot(data, 
+mpf.plot(data_chart, 
          type='candle', 
          volume=True,
          style='yahoo',
@@ -65,15 +65,15 @@ mpf.plot(data,
 
 # https://github.com/matplotlib/mplfinance/blob/master/examples/addplot.ipynb
 #%% Charting peak and troughs
-peaks = simulation.get_peaks_troughs(data, column='High', mode='peak', threshold=0.005)
-troughs = simulation.get_peaks_troughs(data, column='Low', mode='trough', threshold=0.005)
+peaks = simulation.get_peaks_troughs(data_chart, column='High', mode='peak', threshold=0.005)
+troughs = simulation.get_peaks_troughs(data_chart, column='Low', mode='trough', threshold=0.005)
 
 apds = [
         mpf.make_addplot(peaks, type='scatter', marker = 'v', color = 'green', markersize=200),
         mpf.make_addplot(troughs, type='scatter', marker = '^', color = 'red', markersize=200)
         ]
 
-mpf.plot(data,
+mpf.plot(data_chart,
          type='candle',
          volume=True,
          style='yahoo',
@@ -97,7 +97,7 @@ apds = [
         mpf.make_addplot(troughs_lr_populated, type='line',color='red', label='Low trend line')
         ]
 
-mpf.plot(data,
+mpf.plot(data_chart,
          type='candle',
          volume=True,
          style='yahoo',
@@ -108,13 +108,13 @@ mpf.plot(data,
          )
 
 #%% Charting with RSI
-simulation.add_rsi(data, window=14)
-simulation.add_stoch_rsi(data, window=14)
+simulation.add_rsi(data_chart, window=14)
+simulation.add_stoch_rsi(data_chart, window=14)
 
-rsi_plot = mpf.make_addplot(data['RSI'], panel=2, color='purple',secondary_y=False, ylim=(0,100))
-stoch_rsi_plot = mpf.make_addplot(data['StochRSI'], panel=3, color='orange', secondary_y=False, ylim=(0,100))
+rsi_plot = mpf.make_addplot(data_chart['RSI'], panel=2, color='purple',secondary_y=False, ylim=(0,100))
+stoch_rsi_plot = mpf.make_addplot(data_chart['StochRSI'], panel=3, color='orange', secondary_y=False, ylim=(0,100))
 
-mpf.plot(data, 
+mpf.plot(data_chart, 
          type='candle', 
          volume=True, 
          style='yahoo', 
@@ -127,17 +127,17 @@ mpf.plot(data,
 
 
 #%% Charting with Bollinger Band
-simulation.add_bollingerbands(data, 
+simulation.add_bollingerbands(data_chart, 
                    column='Close', 
                    window=20, 
                    num_std=2)
 
-apds = [mpf.make_addplot(data['BB_Middle'], type='line', color='orange'),
-        mpf.make_addplot(data['BB_Upper'], type='line', color='blue'),
-        mpf.make_addplot(data['BB_Lower'], type='line', color='blue')
+apds = [mpf.make_addplot(data_chart['BB_Middle'], type='line', color='orange'),
+        mpf.make_addplot(data_chart['BB_Upper'], type='line', color='blue'),
+        mpf.make_addplot(data_chart['BB_Lower'], type='line', color='blue')
         ]
 
-mpf.plot(data,
+mpf.plot(data_chart,
          type='candle',
          volume=True,
          style='yahoo',
@@ -149,7 +149,7 @@ mpf.plot(data,
 
 #%% Trade simulation
 trade_simulation = simulation.add_short_sltp_fees_graph(
-    data, 
+    data_chart, 
     trade_size=1000,
     trade_start='2025-07-04 06:00:00', 
     stop_loss=0.2, 
