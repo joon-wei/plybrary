@@ -45,7 +45,8 @@ def download_crypto_data(symbol,timeframe,start_time,end_time):
         if df.empty or df['Timestamp'].iloc[-1] >= end_time:
             break
         
-        start_time = df['Timestamp'].iloc[-1] + 1 
+        start_time = df['Timestamp'].iloc[-1] + 1
+        print(f'Downloading {start_time}...')
         time.sleep(1)    
       
     ohlcv = pd.DataFrame(all_data, columns=['Timestamp','Open','High','Low','Close','Volume'])

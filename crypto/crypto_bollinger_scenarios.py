@@ -38,14 +38,14 @@ stop_loss = 0.2
 take_profit = 0.25
 leverage=20
 
-trade_type = 'Short'
+trade_type = 'Long'
 
 results = []
 
 # Simulate trades using 5min timeframe. Entries are still based on the above timeframe
 for date in entries_list:
     date_2 = date + timedelta(1)
-    data = database.pull_crypto_data(symbol=symbol,timeframe='5m',start_time=str(date), end_time=str(date_2))
+    data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))
     timeframe_str = f'{str(date)} - {str(date_2)}'
     data = data.drop(columns=['Timezone'])
     data['Timestamp'] = pd.to_datetime(data['Timestamp'])
@@ -53,7 +53,7 @@ for date in entries_list:
     #simulation.add_bollingerbands(data, 'Close')
     
     if trade_type == 'Long':
-        df_sim = simulation.add_long_sltp_fees_graph(data, 
+        df_sim = simulation.add_long_sltp_fees(data, 
                                                trade_size=trade_size, 
                                                trade_start=date,
                                                stop_loss=stop_loss,
@@ -61,7 +61,7 @@ for date in entries_list:
                                                leverage=leverage
                                                )
     elif trade_type == 'Short':
-        df_sim = simulation.add_short_sltp_fees_graph(data, 
+        df_sim = simulation.add_short_sltp_fees(data, 
                                                trade_size=trade_size, 
                                                trade_start=date,
                                                stop_loss=stop_loss,

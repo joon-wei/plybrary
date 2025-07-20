@@ -3,7 +3,7 @@ import pandas as pd
 
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
-timeframe = '5m'
+timeframe = '1m'
 start_time = '2024-12-06'
 end_time = '2024-12-07' # not inclusive
 
@@ -13,9 +13,6 @@ data = database.pull_crypto_data(symbol,timeframe,start_time,end_time)
 data = data.drop(columns=['Timezone'])
 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
 data.set_index('Timestamp', inplace=True)
-
-data = data[:100]
-
 
 #%%
 sim2 = simulation.add_short_sltp_fees_graph(data, 
