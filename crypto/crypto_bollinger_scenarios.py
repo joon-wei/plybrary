@@ -11,8 +11,8 @@ The variable x can be set to find entry points only when price is x% lower/highe
 #%% Simulation 2: Find entry points
 symbol = 'BTC/USDT'
 timeframe = '15m'
-start_time = '2024-01-01'
-end_time = '2025-01-01'
+start_time = '2025-01-01'
+end_time = '2025-07-01'
 
 # Bollinger bands calculated based on above timeframe
 data_initial = database.pull_crypto_data(symbol,timeframe,start_time,end_time)   
@@ -21,7 +21,7 @@ data_initial['Timestamp'] = pd.to_datetime(data_initial['Timestamp'])
 data_initial.set_index('Timestamp', inplace=True)
 simulation.add_bollingerbands(data_initial, 'Close') 
 
-x = 0.01
+x = 0.005
 band = 'Lower'
 
 # entries_list = []
@@ -47,11 +47,11 @@ del data_initial, data_initial_index_list   #free up some mem
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
-stop_loss = 0.1
-take_profit = 0.2
+stop_loss = 0.2
+take_profit = 0.3
 leverage=20
 
-trade_type = 'Long'
+trade_type = 'Short'
 
 results = []
 
@@ -60,6 +60,7 @@ for date in true_entries_list:
     date_2 = date + timedelta(1)
     data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))
     timeframe_str = f'{str(date)} - {str(date_2)}'
+    print(f'Running {timeframe_str}')
     data = data.drop(columns=['Timezone'])
     data['Timestamp'] = pd.to_datetime(data['Timestamp'])
     data.set_index('Timestamp', inplace=True)
@@ -115,8 +116,8 @@ time_now = datetime.now()
 time_now = time_now.strftime('%Y-%m-%d %H:%M:%S')
 
 trade_size = 1000
-stop_losses = simulation.get_array(0.1, 0.2, 0.05)
-take_profits = simulation.get_array(0.1, 0.3, 0.05)
+stop_losses = simulation.get_array(0.2, 0.3, 0.05)
+take_profits = simulation.get_array(0.2, 0.31, 0.1)
 leverages = simulation.get_array(10, 20, 5)
 slippage=False
 trade_type = 'Short'
