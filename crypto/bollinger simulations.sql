@@ -1,5 +1,3 @@
-select * from crypto_simulation_bollinger
-
 -- 2024
 select * from crypto_simulation_bollinger
 where TestPeriod = '2024-01-01 - 2025-01-01'

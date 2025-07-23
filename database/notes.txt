@@ -1,6 +1,13 @@
 BTC
 complete 2024 data loaded:
-crypto_5m
-crypto_15m
-crypto_1h
-crypto_4h
+1m
+5m
+15m
+1h
+4h
+
+2025-01-01 - 2025-07-01
+1m
+15m
+4h
+

@@ -53,6 +53,7 @@ leverage=20
 
 trade_type = 'Short'
 
+
 results = []
 
 # Simulate trades using 5min timeframe. Entries are still based on the above timeframe
@@ -121,6 +122,7 @@ take_profits = simulation.get_array(0.2, 0.31, 0.1)
 leverages = simulation.get_array(10, 20, 5)
 slippage=False
 trade_type = 'Short'
+strategy_name = 'b_2'
 
 sim_results = []
 scenario_results = []
@@ -183,6 +185,7 @@ for l in leverages:
             scenario_result = {'SimulationRunDate':time_now,
                                'Symbol':symbol,
                                'TestPeriod': test_period,
+                               'Strategy':strategy_name,
                                'BollingerTimeframe':timeframe,
                                'Threshold':x,
                                'Band':band,
