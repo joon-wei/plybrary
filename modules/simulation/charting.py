@@ -59,36 +59,77 @@ def get_peaks_troughs(df, column: str, mode: str, threshold: float):
     
     return series
 
-def add_rsi(dataframe, window=14):
+# def add_rsi(dataframe, window=14):
     
-    """
-    Parameters
-    ----------
-    dataframe : ohcl dataset
-    window : ticks
-    The default is 14.
+#     """
+#     Parameters
+#     ----------
+#     dataframe : ohcl dataset
+#     window : ticks
+#     The default is 14.
 
-    Adds column of RSI values to exisiting data df.
+#     Adds column of RSI values to exisiting data df.
+#     """
+    
+#     window_length = window
+    
+#     delta = dataframe['Close'].diff()
+#     gain = delta.where(delta > 0, 0)
+#     loss = -delta.where(delta < 0, 0)
+#     avg_gain = gain.ewm(com=window_length - 1, adjust=False).mean()
+#     avg_loss = loss.ewm(com=window_length - 1, adjust=False).mean()
+#     rs = avg_gain/avg_loss
+    
+#     dataframe['RSI'] = 100 - (100 / (1 + rs))
+#     dataframe.dropna(inplace=True)
+
+def add_sma_rsi(dataframe, period=14):
+    
+    """
+    Adds a column of RSI values to ohlc dataset.
+
     """
     
-    window_length = window
+    close = dataframe['Close'] 
     
-    delta = dataframe['Close'].diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-    avg_gain = gain.ewm(com=window_length - 1, adjust=False).mean()
-    avg_loss = loss.ewm(com=window_length - 1, adjust=False).mean()
+    delta = close.diff()
+    gain = delta.where(delta > 0, 0.0)
+    loss = -delta.where(delta < 0, 0.0)
+    
+    avg_gain = gain.rolling(window=14).mean()
+    avg_loss = loss.rolling(window=14).mean()
+    
     rs = avg_gain/avg_loss
+    rsi = 100-(100/(1+rs))
+    dataframe['RSI'] = rsi
+
+def add_wilder_rsi(dataframe, period=14):
     
-    dataframe['RSI'] = 100 - (100 / (1 + rs))
-    dataframe.dropna(inplace=True)
+    """
+    Adds a column of RSI values using Wilder's smoothing.
+    It replicates trading view charts more accurately.
+
+    """
     
+    close = dataframe['Close'] 
+    
+    delta = close.diff()
+    gain = delta.where(delta > 0, 0.0)
+    loss = -delta.where(delta < 0, 0.0)
+    
+    avg_gain = gain.ewm(alpha=1/period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/period, adjust=False).mean()
+    
+    rs = avg_gain/avg_loss
+    rsi = 100-(100/(1+rs))
+    dataframe['RSI'] = rsi
+
 def add_stoch_rsi(dataframe,window=14):
     
     """
     Parameters
     ----------
-    dataframe : ohcl dataset
+    dataframe : ohlc dataset
     window : ticks
     The default is 14.
     
@@ -109,7 +150,7 @@ def add_bollingerbands(dataframe, column='Close', window=20, num_std=2):
     """
     Parameters
     ----------
-    dataframe : ohcl dataset
+    dataframe : ohlc dataset
     column : The default is 'Close'.
     window : The default is 20.
     num_std : The default is 2.

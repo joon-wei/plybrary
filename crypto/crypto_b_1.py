@@ -8,9 +8,9 @@ This simulation scenario finds entry points and enters trades based on the price
 The variable x can be set to find entry points only when price is x% lower/higher then the lower/upper band.
 '''
 
-#%% Simulation 2: Find entry points
+#%% Find entry points
 symbol = 'BTC/USDT'
-timeframe = '15m'
+timeframe = '1h'
 start_time = '2025-01-01'
 end_time = '2025-07-01'
 
@@ -21,7 +21,7 @@ data_initial['Timestamp'] = pd.to_datetime(data_initial['Timestamp'])
 data_initial.set_index('Timestamp', inplace=True)
 simulation.add_bollingerbands(data_initial, 'Close') 
 
-x = 0.005
+x = 0.01
 band = 'Lower'
 
 # entries_list = []
