@@ -43,7 +43,7 @@ for ep_idx in entry_points:
     current_pos = data_initial_index_list.index(ep_idx)
     true_entries_list.append(data_initial_index_list[current_pos + 1])
 
-del data_initial, data_initial_index_list   #free up some mem
+del data_initial, data_initial_index_list, current_pos   #free up some mem
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000

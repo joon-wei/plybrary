@@ -5,9 +5,9 @@ import pandas as pd
     
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
-timeframe = '15m'
-start_time = '2024-08-28'
-end_time = '2024-08-29' # not inclusive
+timeframe = '1h'
+start_time = '2025-06-19'
+end_time = '2025-06-30' # not inclusive
 
 #%% download data from exchange
 start_time_unix = database.create_timecode(start_time)
@@ -108,11 +108,13 @@ mpf.plot(data_chart,
          )
 
 #%% Charting with RSI
-simulation.add_rsi(data_chart, window=14)
-simulation.add_stoch_rsi(data_chart, window=14)
+simulation.add_wilder_rsi(data_chart, period=14)
+#simulation.add_stoch_rsi(data_chart, window=14)
 
 rsi_plot = mpf.make_addplot(data_chart['RSI'], panel=2, color='purple',secondary_y=False, ylim=(0,100))
-stoch_rsi_plot = mpf.make_addplot(data_chart['StochRSI'], panel=3, color='orange', secondary_y=False, ylim=(0,100))
+#stoch_rsi_plot = mpf.make_addplot(data_chart['StochRSI'], panel=3, color='orange', secondary_y=False, ylim=(0,100))
+
+apds = [rsi_plot]
 
 mpf.plot(data_chart, 
          type='candle', 
@@ -120,9 +122,9 @@ mpf.plot(data_chart,
          style='yahoo', 
          title=f'{symbol} | {start_time} to {end_time} | With RSI',
          #mav=(5,20),
-         addplot=[rsi_plot, stoch_rsi_plot],
-         panel_ratios=(3,1,1,1),
-         figsize=(25,15)
+         addplot=apds,
+         panel_ratios=(3,1,1),
+         figsize=(15,9)
          )
 
 
@@ -143,7 +145,32 @@ mpf.plot(data_chart,
          style='yahoo',
          addplot=apds,
          title = f'{symbol} | {start_time} to {end_time} | {timeframe} | Bollinger Bands',
-         figsize = (15,9),
+         figsize = (25,15),
+         returnfig=True
+         )
+
+#%% Charting with Bollinger Band (with RSI)
+simulation.add_wilder_rsi(data_chart, period=14)
+simulation.add_bollingerbands(data_chart, 
+                   column='Close', 
+                   window=20, 
+                   num_std=2)
+
+apds = [mpf.make_addplot(data_chart['BB_Middle'], type='line', color='orange'),
+        mpf.make_addplot(data_chart['BB_Upper'], type='line', color='blue'),
+        mpf.make_addplot(data_chart['BB_Lower'], type='line', color='blue'),
+        mpf.make_addplot(data_chart['RSI'], panel=1, color='purple',secondary_y=False, ylim=(0,100)),
+        mpf.make_addplot([30] * len(data_chart), panel=1, color='orange', linestyle='--', secondary_y=False),
+        mpf.make_addplot([70] * len(data_chart), panel=1, color='orange', linestyle='--', secondary_y=False)
+        ]
+
+mpf.plot(data_chart,
+         type='candle',
+         volume=False,
+         style='yahoo',
+         addplot=apds,
+         title = f'{symbol} | {start_time} to {end_time} | {timeframe}',
+         figsize = (25,15),
          returnfig=True
          )
 
