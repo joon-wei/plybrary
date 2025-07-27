@@ -216,7 +216,7 @@ print(f'Process time: {elapsed_time/60:.2f} minutes ({elapsed_time:.2f} seconds)
 while True:
     user_input = input('Insert into db? y/n: ')
     if user_input.lower() == 'y':
-        database.insert_crypto_bollinger_simulations(scenarios_df)
+        database.insert_crypto_b_1(scenarios_df)
         break
     elif user_input.lower() == 'n':
         print('Results not saved to db.')

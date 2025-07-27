@@ -6,8 +6,8 @@ import pandas as pd
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2025-06-19'
-end_time = '2025-06-30' # not inclusive
+start_time = '2024-06-19'
+end_time = '2024-06-25' # not inclusive
 
 #%% download data from exchange
 start_time_unix = database.create_timecode(start_time)

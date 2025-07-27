@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['crypto/crypto_b_1.py', 'crypto/crypto_basic_simulation.py', 'crypto/crypto_charting_demo.py', 'crypto/crypto_b_3.py', 'modules/simulation/charting.py']
+recent_files = ['crypto/crypto_b_1.py', 'crypto/crypto_b_3.py', 'crypto/crypto_basic_simulation.py', 'crypto/crypto_charting_demo.py', 'modules/database/dataloader.py']
 
 [main]
 version = 0.2.0

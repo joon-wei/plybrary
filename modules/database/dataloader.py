@@ -100,14 +100,14 @@ def pull_crypto_data(symbol=None, timeframe='1h', start_time=None, end_time=None
     conn.close()
     return df
 
-def insert_crypto_bollinger_simulations(df):
+def insert_crypto_b_1(df):
     conn = sqlite3.connect(db_dir)
     cursor = conn.cursor()
     
     data_tuples = [tuple(x) for x in df.to_numpy()]
     
     insert_query = '''
-    INSERT INTO crypto_simulation_bollinger ('SimulationRunDate', 'Symbol', 'TestPeriod', 'Strategy','BollingerTimeframe',
+    INSERT INTO crypto_simulation_b_1 ('SimulationRunDate', 'Symbol', 'TestPeriod', 'Strategy','BollingerTimeframe',
            'Threshold', 'Band', 'TradeType', 'Slippage', 'TradeSize', 'Leverage', 'StopLoss',
            'TakeProfit', 'TakeProfitCount', 'StopLossCount', 'NoExitCount',
            'TotalTrades', 'WinRate', 'TotalReturn')
@@ -116,8 +116,25 @@ def insert_crypto_bollinger_simulations(df):
     cursor.executemany(insert_query,data_tuples)
     conn.commit()
     conn.close()
-    print('Insert into table crypto_simulation_bollinger successful')
+    print('Insert into table crypto_simulation_b_1 successful')
+
+def insert_crypto_b_3(df):
+    conn = sqlite3.connect(db_dir)
+    cursor = conn.cursor()
+    data_tuples = [tuple(x) for x in df.to_numpy()] 
     
+    insert_query = '''
+    INSERT INTO crypto_simulation_b_3 ('SimulationRunDate','Symbol','TestPeriod','Strategy','BollingerTimeframe','RSILowerThreshold','RSIUpperThreshold',
+    'Band','TradeType','Slippage','TradeSize','Leverage','StopLoss','TakeProfit','TakeProfitCount',
+    'StopLossCount','NoExitCount','TotalTrades', 'WinRate','TotalReturn')
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    '''
+    cursor.executemany(insert_query,data_tuples)
+    conn.commit()
+    conn.close()
+    print('Insert into table crypto_simulation_b_3 successful')
+    
+
 def test_db_connection():
     print('DB path: ',db_dir)
     conn = sqlite3.connect(db_dir)

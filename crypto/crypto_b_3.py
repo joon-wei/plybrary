@@ -1,13 +1,13 @@
 from modules import simulation,database
 import pandas as pd
 from datetime import timedelta,datetime
-# import time
+import time
 
 #%% Entry points
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2024-01-01'
-end_time = '2024-07-01'
+start_time = '2024-07-01'
+end_time = '2025-01-01'
 
 # Bollinger bands calculated based on above timeframe
 data_initial = database.pull_crypto_data(symbol,timeframe,start_time,end_time)   
@@ -19,23 +19,24 @@ simulation.add_bollingerbands(data_initial, 'Close')
 simulation.add_wilder_rsi(data_initial)
 data_initial = data_initial[19:]    # remove leading rows with no bb values
 
-
 band = 'Lower'
+rsi_lower_threshold = 35
+rsi_upper_threshold = 65
 
 if band == 'Lower':
-    entry_points = data_initial[(data_initial['Low'] <= data_initial['BB_Lower']) & (data_initial['RSI'] >= 30)]['Low'].index
+    entry_points = data_initial[(data_initial['Low'] <= data_initial['BB_Lower']) & (data_initial['RSI'] >= rsi_lower_threshold)]['Low'].index
 elif band == 'Upper':
-    entry_points = data_initial[(data_initial['High'] <= data_initial['BB_Upper']) & (data_initial['RSI'] <= 70)]['Low'].index
+    entry_points = data_initial[(data_initial['High'] >= data_initial['BB_Upper']) & (data_initial['RSI'] <= rsi_upper_threshold)]['High'].index
 
 
-data_initial_index_list = data_initial.index.tolist()
-true_entries_list = []
-for ep_idx in entry_points:
-    current_pos = data_initial_index_list.index(ep_idx)
-    true_entries_list.append(data_initial_index_list[current_pos + 1])
+true_entries_list = entry_points
 
-del data_initial_index_list, current_pos #, data_initial   #free up some mem
-
+# data_initial_index_list = data_initial.index.tolist()
+# true_entries_list = []
+# for ep_idx in entry_points:
+#     current_pos = data_initial_index_list.index(ep_idx)
+#     true_entries_list.append(data_initial_index_list[current_pos + 1])
+#del data_initial_index_list, current_pos #, data_initial   #free up some mem
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
@@ -60,7 +61,7 @@ for date in true_entries_list:
     #simulation.add_bollingerbands(data, 'Close')
     
     if trade_type == 'Long':
-        df_sim = simulation.add_long_sltp_fees(data, 
+        df_sim = simulation.add_long_sltp_fees_graph(data, 
                                                trade_size=trade_size, 
                                                trade_start=date,
                                                stop_loss=stop_loss,
@@ -68,7 +69,7 @@ for date in true_entries_list:
                                                leverage=leverage
                                                )
     elif trade_type == 'Short':
-        df_sim = simulation.add_short_sltp_fees(data, 
+        df_sim = simulation.add_short_sltp_fees_graph(data, 
                                                trade_size=trade_size, 
                                                trade_start=date,
                                                stop_loss=stop_loss,
@@ -103,3 +104,118 @@ total_return = results_df['Actual_Return'].sum()
 print(f'-----------\nExpected win rate: {win_rate*100:.2f}%\n\nTotal Profit/loss: ${total_return:.2f}')
 
 
+#%% All permutations simulation
+test_period = f'{start_time} - {end_time}'
+time_now = datetime.now()
+time_now = time_now.strftime('%Y-%m-%d %H:%M:%S')
+
+trade_size = 1000
+stop_losses = simulation.get_array(0.1, 0.2, 0.1)
+take_profits = simulation.get_array(0.1, 0.2, 0.1)
+leverages = simulation.get_array(10, 20, 10)
+print(f'Stop Losses: {stop_losses}\nTake Profits: {take_profits}\nLeverages: {leverages}')
+
+slippage=False
+trade_type = 'Long'
+strategy_name = 'b_3.1'
+
+sim_results = []
+scenario_results = []
+
+start_run_time = time.time()
+
+for l in leverages:
+    for sl in stop_losses:
+        for tp in take_profits:
+            print(f'leverage: {l}, sl: {sl}, tp: {tp}')
+            
+            for date in true_entries_list:
+                date_2 = date + timedelta(1)
+                data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))   # trades are tested on 1m data
+                #timeframe_str = f'{str(date)} - {str(date_2)}'
+                data = data.drop(columns=['Timezone'])
+                data['Timestamp'] = pd.to_datetime(data['Timestamp'])
+                data.set_index('Timestamp', inplace=True)
+                #simulation.add_bollingerbands(data, 'Close')
+                
+                if trade_type == 'Long':
+                    df_sim = simulation.add_long_sltp_fees(data, 
+                                                           trade_size=trade_size, 
+                                                           trade_start=date,
+                                                           stop_loss=sl,
+                                                           take_profit=tp,
+                                                           leverage=l,
+                                                           slippage=slippage
+                                                           )    # btw, entry price is the close price of the candlestick
+                elif trade_type == 'Short':
+                    df_sim = simulation.add_short_sltp_fees(data, 
+                                                           trade_size=trade_size, 
+                                                           trade_start=date,
+                                                           stop_loss=sl,
+                                                           take_profit=tp,
+                                                           leverage=l,
+                                                           slippage=slippage
+                                                           ) 
+                
+                exit_reason = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'exit_reason'] if df_sim['exit_reason'].notna().any() else 'No Exit'
+                return_percent = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'return'] if df_sim['exit_reason'].notna().any() else 'No Exit'
+                actual_return = df_sim.loc[df_sim['exit_reason'].first_valid_index(), 'actual_return'] if df_sim['exit_reason'].notna().any() else 0
+                
+                sim_results.append({
+                    #'Timeframe': timeframe_str,
+                    'Exit_Reason': exit_reason,
+                    'Return_Percentage': return_percent,
+                    'Actual_Return':actual_return
+                    })
+                
+                results_df = pd.DataFrame(sim_results)
+                
+            tp_count = (results_df['Exit_Reason'] == 'Take-Profit Reached').sum()
+            sl_count = (results_df['Exit_Reason'] == 'Stop-Loss Triggered').sum()
+            no_exit_count = (results_df['Exit_Reason'] == 'No Exit').sum()
+            total_trades = len(results_df['Exit_Reason'])
+            win_rate = tp_count/(tp_count + sl_count + no_exit_count)
+            total_return = results_df['Actual_Return'].sum()
+            
+            scenario_result = {'SimulationRunDate':time_now,
+                               'Symbol':symbol,
+                               'TestPeriod':test_period,
+                               'Strategy':strategy_name,
+                               'BollingerTimeframe':timeframe,
+                               'RSILowerThreshold':rsi_lower_threshold,
+                               'RSIUpperThreshold':rsi_upper_threshold,
+                               'Band':band,
+                               'TradeType':trade_type,
+                               'Slippage':'False' if slippage==False else 'True',
+                               'TradeSize':trade_size,
+                               'Leverage':l,
+                               'StopLoss':sl,
+                               'TakeProfit':tp,
+                               'TakeProfitCount':tp_count,
+                               'StopLossCount':sl_count,
+                               'NoExitCount':no_exit_count,
+                               'TotalTrades':total_trades,
+                               'WinRate':win_rate,
+                               'TotalReturn':total_return
+                               }
+            scenario_results.append(scenario_result)
+            results_df = results_df[0:0]
+            sim_results = []
+
+scenarios_df = pd.DataFrame(scenario_results)
+
+end_run_time = time.time()
+elapsed_time = end_run_time - start_run_time
+print(f'Process time: {elapsed_time/60:.2f} minutes ({elapsed_time:.2f} seconds).')
+
+# Save results to db, insert into crypto_simulation_bollinger
+while True:
+    user_input = input('Insert into db? y/n: ')
+    if user_input.lower() == 'y':
+        database.insert_crypto_b_3(scenarios_df)
+        break
+    elif user_input.lower() == 'n':
+        print('Results not saved to db.')
+        break
+    else:
+        print('Please enter a valid key. y/n: ')
