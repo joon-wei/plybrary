@@ -53,3 +53,35 @@ and TestPeriod = '2024-07-01 - 2025-01-01'
 and Strategy = 'b_3.1'
 order by TotalReturn DESC
 
+
+-- b_3.2 forcing one trade per day. To compare with the initial test 
+select * from crypto_simulation_b_3
+where TradeType = 'Long' and Band = 'Lower'
+and RSILowerThreshold = 30
+and TestPeriod = '2024-06-01 - 2024-07-01'
+and Strategy = 'b_3'
+order by TotalReturn DESC
+
+select * from crypto_simulation_b_3
+where TradeType = 'Long' and Band = 'Lower'
+and RSILowerThreshold = 30
+and TestPeriod = '2024-06-01 - 2024-07-01'
+and Strategy = 'b_3.2'
+order by TotalReturn DESC
+
+
+-- try another longer test period
+select * from crypto_simulation_b_3
+where TradeType = 'Long' and Band = 'Lower'
+and RSILowerThreshold = 30
+and TestPeriod = '2025-01-01 - 2025-06-30'
+and Strategy = 'b_3'
+order by TotalReturn DESC
+
+select * from crypto_simulation_b_3
+where TradeType = 'Long' and Band = 'Lower'
+and RSILowerThreshold = 30
+and TestPeriod = '2025-01-01 - 2025-06-30'
+and Strategy = 'b_3.2'
+order by Leverage,StopLoss,TakeProfit DESC
+

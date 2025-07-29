@@ -6,8 +6,8 @@ import time
 #%% Entry points
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2024-07-01'
-end_time = '2025-01-01'
+start_time = '2025-01-01'
+end_time = '2025-06-30'
 
 # Bollinger bands calculated based on above timeframe
 data_initial = database.pull_crypto_data(symbol,timeframe,start_time,end_time)   
@@ -20,23 +20,34 @@ simulation.add_wilder_rsi(data_initial)
 data_initial = data_initial[19:]    # remove leading rows with no bb values
 
 band = 'Lower'
-rsi_lower_threshold = 35
-rsi_upper_threshold = 65
+rsi_lower_threshold = 30
+rsi_upper_threshold = 70
 
 if band == 'Lower':
     entry_points = data_initial[(data_initial['Low'] <= data_initial['BB_Lower']) & (data_initial['RSI'] >= rsi_lower_threshold)]['Low'].index
 elif band == 'Upper':
     entry_points = data_initial[(data_initial['High'] >= data_initial['BB_Upper']) & (data_initial['RSI'] <= rsi_upper_threshold)]['High'].index
 
+#true_entries_list = entry_points   #if i wanna bypass true entries logic (b_3.1)
 
-true_entries_list = entry_points
+data_initial_index_list = data_initial.index.tolist()
+true_entries_list = []
+for ep_idx in entry_points:
+    current_pos = data_initial_index_list.index(ep_idx)
+    true_entries_list.append(data_initial_index_list[current_pos + 1])
+del data_initial_index_list, current_pos #, data_initial   #free up some mem
 
-# data_initial_index_list = data_initial.index.tolist()
-# true_entries_list = []
-# for ep_idx in entry_points:
-#     current_pos = data_initial_index_list.index(ep_idx)
-#     true_entries_list.append(data_initial_index_list[current_pos + 1])
-#del data_initial_index_list, current_pos #, data_initial   #free up some mem
+
+#%% b_3.2: One trade per day 
+seen_dates = set()
+one_per_day = []
+
+for dt in true_entries_list:
+    if dt.date() not in seen_dates:
+        one_per_day.append(dt)
+        seen_dates.add(dt.date())
+
+true_entries_list = one_per_day
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
@@ -61,7 +72,7 @@ for date in true_entries_list:
     #simulation.add_bollingerbands(data, 'Close')
     
     if trade_type == 'Long':
-        df_sim = simulation.add_long_sltp_fees_graph(data, 
+        df_sim = simulation.add_long_sltp_fees(data, 
                                                trade_size=trade_size, 
                                                trade_start=date,
                                                stop_loss=stop_loss,
@@ -69,7 +80,7 @@ for date in true_entries_list:
                                                leverage=leverage
                                                )
     elif trade_type == 'Short':
-        df_sim = simulation.add_short_sltp_fees_graph(data, 
+        df_sim = simulation.add_short_sltp_fees(data, 
                                                trade_size=trade_size, 
                                                trade_start=date,
                                                stop_loss=stop_loss,
@@ -116,8 +127,8 @@ leverages = simulation.get_array(10, 20, 10)
 print(f'Stop Losses: {stop_losses}\nTake Profits: {take_profits}\nLeverages: {leverages}')
 
 slippage=False
-trade_type = 'Long'
-strategy_name = 'b_3.1'
+trade_type = 'Short'
+strategy_name = 'b_3.2'
 
 sim_results = []
 scenario_results = []

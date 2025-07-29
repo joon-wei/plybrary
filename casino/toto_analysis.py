@@ -6,11 +6,10 @@ import pandas as pd
 import random
 
 #%%
-# latest_results = database.pull_toto_latest(10)
-# print(latest_results)
+print(database.pull_toto_latest(10))
 
 #%%
-years = 5
+years = 13
 
 today = datetime.today()
 start_date = today - relativedelta(years=years)
@@ -29,7 +28,7 @@ bottom_6 = total_counts.sort_values().head(6)
 most_frequent = top_6.index.tolist()
 least_frequent = bottom_6.index.tolist()
 
-print('-------------------------------------------------')
+print(f'--------------------- {years} year(s) ---------------------------')
 print('Most frequent:', most_frequent)
 print('Least frequent: ', least_frequent)
 
@@ -83,4 +82,16 @@ def generate_tix(most_frequent_list, least_frequent_list, x=int):
         
 
 generate_tix(most_frequent, least_frequent, 2)
+
+#%%
+'''
+29 Jul
+1-10:
+1yr - 2
+3yr - 4
+10yr - 2
+13yr - 2
+
+11-16 - rng
+'''
 
