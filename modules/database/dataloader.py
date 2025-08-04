@@ -133,7 +133,22 @@ def insert_crypto_b_3(df):
     conn.commit()
     conn.close()
     print('Insert into table crypto_simulation_b_3 successful')
+
+def insert_crypto_b_4(df):
+    conn = sqlite3.connect(db_dir)
+    cursor = conn.cursor()
+    data_tuples = [tuple(x) for x in df.to_numpy()] 
     
+    insert_query = '''
+    INSERT INTO crypto_simulation_b_4 ('SimulationRunDate','Symbol','TestPeriod','Strategy','ChartTimeframe','BollingerWindow','RSIWindow',
+    'RSILowerThreshold','RSIUpperThreshold','StandardDeviationThreshold','Band','TradeType','Slippage','TradeSize','Leverage','StopLoss',
+    'TakeProfit','TakeProfitCount','StopLossCount','NoExitCount','TotalTrades', 'WinRate','TotalReturn')
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    '''
+    cursor.executemany(insert_query,data_tuples)
+    conn.commit()
+    conn.close()
+    print('Insert into table crypto_simulation_b_4 successful')
 
 def test_db_connection():
     print('DB path: ',db_dir)

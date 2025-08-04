@@ -6,8 +6,8 @@ import pandas as pd
 #%% set ticker and timeframe
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2024-07-01'
-end_time = '2024-07-07' # not inclusive
+start_time = '2025-07-23'
+end_time = '2025-08-01' # not inclusive
 
 #%% download data from exchange
 start_time_unix = database.create_timecode(start_time)
@@ -149,11 +149,11 @@ mpf.plot(data_chart,
          returnfig=True
          )
 
-#%% Charting with Bollinger Band (with RSI)
-simulation.add_wilder_rsi(data_chart, period=14)
+#%% Charting with Bollinger Band and RSI
+simulation.add_wilder_rsi(data_chart, period=7)
 simulation.add_bollingerbands(data_chart, 
                    column='Close', 
-                   window=20, 
+                   window=7, 
                    num_std=2)
 
 apds = [mpf.make_addplot(data_chart['BB_Middle'], type='line', color='orange'),
@@ -161,7 +161,9 @@ apds = [mpf.make_addplot(data_chart['BB_Middle'], type='line', color='orange'),
         mpf.make_addplot(data_chart['BB_Lower'], type='line', color='blue'),
         mpf.make_addplot(data_chart['RSI'], panel=1, color='purple',secondary_y=False, ylim=(0,100)),
         mpf.make_addplot([30] * len(data_chart), panel=1, color='orange', linestyle='--', secondary_y=False),
-        mpf.make_addplot([70] * len(data_chart), panel=1, color='orange', linestyle='--', secondary_y=False)
+        mpf.make_addplot([70] * len(data_chart), panel=1, color='orange', linestyle='--', secondary_y=False),
+        mpf.make_addplot(data_chart['BB_Std'], panel=2, color='green'),
+        mpf.make_addplot([400] * len(data_chart), panel=2, color='orange',linestyle='--')
         ]
 
 mpf.plot(data_chart,

@@ -6,53 +6,48 @@ import time
 #%% Entry points
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2025-01-01'
-end_time = '2025-06-30'
+start_time = '2024-07-01'
+end_time = '2025-07-01'
 
-# Bollinger bands calculated based on above timeframe
+# Set scenario parameters
+boll_ticks = 7
+rsi_ticks = 7
+rsi_upper_threshold = 65
+rsi_lower_threshold = 35
+std_threshold = 0.007
+band = 'Lower'
+
+
+# Pull data from dabase
 data_initial = database.pull_crypto_data(symbol,timeframe,start_time,end_time)   
 data_initial = data_initial.drop(columns=['Timezone'])
 data_initial['Timestamp'] = pd.to_datetime(data_initial['Timestamp'])
 data_initial.set_index('Timestamp', inplace=True)
+simulation.add_bollingerbands(data_initial, column='Close', window=boll_ticks, num_std=2) 
+simulation.add_wilder_rsi(data_initial, period=rsi_ticks)
+data_initial['std_ratio'] = data_initial['BB_Std']/data_initial['Close']
 
-simulation.add_bollingerbands(data_initial, 'Close') 
-simulation.add_wilder_rsi(data_initial)
-data_initial = data_initial[19:]    # remove leading rows with no bb values
 
-band = 'Lower'
-rsi_lower_threshold = 30
-rsi_upper_threshold = 70
+data_initial = data_initial['2025-01-01 00:00:00':] # Including more past data improves accuracy of RSI value.
 
 if band == 'Lower':
-    entry_points = data_initial[(data_initial['Low'] <= data_initial['BB_Lower']) & (data_initial['RSI'] >= rsi_lower_threshold)]['Low'].index
+    entry_points = data_initial[
+        (data_initial['Low'] <= data_initial['BB_Lower']) & 
+        (data_initial['RSI'] >= rsi_lower_threshold) & 
+        (data_initial['std_ratio'] >= std_threshold)]['Low'].index
+
 elif band == 'Upper':
-    entry_points = data_initial[(data_initial['High'] >= data_initial['BB_Upper']) & (data_initial['RSI'] <= rsi_upper_threshold)]['High'].index
-
-#true_entries_list = entry_points   #if i wanna bypass true entries logic (b_3.1)
-
-data_initial_index_list = data_initial.index.tolist()
-true_entries_list = []
-for ep_idx in entry_points:
-    current_pos = data_initial_index_list.index(ep_idx)
-    true_entries_list.append(data_initial_index_list[current_pos + 1])
-del data_initial_index_list, current_pos #, data_initial   #free up some mem
+    entry_points = data_initial[
+        (data_initial['High'] >= data_initial['BB_Upper']) & 
+        (data_initial['RSI'] <= rsi_upper_threshold) & 
+        (data_initial['std_ratio'] >= std_threshold)]['High'].index
 
 
-#%% b_3.2: One trade per day 
-seen_dates = set()
-one_per_day = []
-
-for dt in true_entries_list:
-    if dt.date() not in seen_dates:
-        one_per_day.append(dt)
-        seen_dates.add(dt.date())
-
-true_entries_list = one_per_day
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
 stop_loss = 0.1
-take_profit = 0.1
+take_profit = 0.2
 leverage=20
 
 trade_type = 'Long'
@@ -61,7 +56,7 @@ trade_type = 'Long'
 results = []
 
 # Simulate trades using 1min timeframe. Entries are still based on the above timeframe
-for date in true_entries_list:
+for date in entry_points:
     date_2 = date + timedelta(1)
     data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))
     timeframe_str = f'{str(date)} - {str(date_2)}'
@@ -101,6 +96,7 @@ for date in true_entries_list:
     
     results_df = pd.DataFrame(results)
 
+
 tp_count = (results_df['Exit_Reason'] == 'Take-Profit Reached').sum()
 sl_count = (results_df['Exit_Reason'] == 'Stop-Loss Triggered').sum()
 no_exit_count = (results_df['Exit_Reason'] == 'No Exit').sum()
@@ -115,20 +111,21 @@ total_return = results_df['Actual_Return'].sum()
 print(f'-----------\nExpected win rate: {win_rate*100:.2f}%\n\nTotal Profit/loss: ${total_return:.2f}')
 
 
+
 #%% All permutations simulation
 test_period = f'{start_time} - {end_time}'
 time_now = datetime.now()
 time_now = time_now.strftime('%Y-%m-%d %H:%M:%S')
 
 trade_size = 1000
-stop_losses = simulation.get_array(0.1, 0.2, 0.1)
-take_profits = simulation.get_array(0.1, 0.2, 0.1)
-leverages = simulation.get_array(10, 20, 10)
+stop_losses = simulation.get_array(0.1, 0.2, 0.05)
+take_profits = simulation.get_array(0.1, 0.2, 0.05)
+leverages = simulation.get_array(10, 20, 5)
 print(f'Stop Losses: {stop_losses}\nTake Profits: {take_profits}\nLeverages: {leverages}')
 
 slippage=False
-trade_type = 'Short'
-strategy_name = 'b_3.2'
+trade_type = 'Long'
+strategy_name = 'b_4.2'
 
 sim_results = []
 scenario_results = []
@@ -140,7 +137,7 @@ for l in leverages:
         for tp in take_profits:
             print(f'leverage: {l}, sl: {sl}, tp: {tp}')
             
-            for date in true_entries_list:
+            for date in entry_points:
                 date_2 = date + timedelta(1)
                 data = database.pull_crypto_data(symbol=symbol,timeframe='1m',start_time=str(date), end_time=str(date_2))   # trades are tested on 1m data
                 #timeframe_str = f'{str(date)} - {str(date_2)}'
@@ -192,9 +189,12 @@ for l in leverages:
                                'Symbol':symbol,
                                'TestPeriod':test_period,
                                'Strategy':strategy_name,
-                               'BollingerTimeframe':timeframe,
+                               'ChartTimeframe':timeframe,
+                               'BollingerWindow':boll_ticks,
+                               'RSIWindow':rsi_ticks,
                                'RSILowerThreshold':rsi_lower_threshold,
                                'RSIUpperThreshold':rsi_upper_threshold,
+                               'StandardDeviationThreshold':std_threshold,
                                'Band':band,
                                'TradeType':trade_type,
                                'Slippage':'False' if slippage==False else 'True',
@@ -219,14 +219,6 @@ end_run_time = time.time()
 elapsed_time = end_run_time - start_run_time
 print(f'Process time: {elapsed_time/60:.2f} minutes ({elapsed_time:.2f} seconds).')
 
-# Save results to db, insert into crypto_simulation_bollinger
-while True:
-    user_input = input('Insert into db? y/n: ')
-    if user_input.lower() == 'y':
-        database.insert_crypto_b_3(scenarios_df)
-        break
-    elif user_input.lower() == 'n':
-        print('Results not saved to db.')
-        break
-    else:
-        print('Please enter a valid key. y/n: ')
+#%% Save results to db, insert into crypto_simulation_bollinger
+database.insert_crypto_b_4(scenarios_df)
+
