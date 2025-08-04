@@ -6,8 +6,8 @@ import time
 #%% Entry points
 symbol = 'BTC/USDT'
 timeframe = '1h'
-start_time = '2024-07-01'
-end_time = '2025-07-01'
+start_time = '2024-01-01'
+end_time = '2025-01-01'
 
 # Set scenario parameters
 boll_ticks = 7
@@ -15,7 +15,7 @@ rsi_ticks = 7
 rsi_upper_threshold = 65
 rsi_lower_threshold = 35
 std_threshold = 0.007
-band = 'Lower'
+band = 'Upper'
 
 
 # Pull data from dabase
@@ -28,7 +28,7 @@ simulation.add_wilder_rsi(data_initial, period=rsi_ticks)
 data_initial['std_ratio'] = data_initial['BB_Std']/data_initial['Close']
 
 
-data_initial = data_initial['2025-01-01 00:00:00':] # Including more past data improves accuracy of RSI value.
+#data_initial = data_initial['2025-01-01 00:00:00':] # Including more past data improves accuracy of RSI value.
 
 if band == 'Lower':
     entry_points = data_initial[
@@ -124,7 +124,7 @@ leverages = simulation.get_array(10, 20, 5)
 print(f'Stop Losses: {stop_losses}\nTake Profits: {take_profits}\nLeverages: {leverages}')
 
 slippage=False
-trade_type = 'Long'
+trade_type = 'Short'
 strategy_name = 'b_4.2'
 
 sim_results = []
