@@ -12,10 +12,10 @@ end_time = '2025-01-01'
 # Set scenario parameters
 boll_ticks = 7
 rsi_ticks = 7
-rsi_upper_threshold = 65
-rsi_lower_threshold = 35
+rsi_upper_threshold = 70
+rsi_lower_threshold = 30
 std_threshold = 0.007
-band = 'Upper'
+band = 'Lower'
 
 
 # Pull data from dabase
@@ -42,15 +42,23 @@ elif band == 'Upper':
         (data_initial['RSI'] <= rsi_upper_threshold) & 
         (data_initial['std_ratio'] >= std_threshold)]['High'].index
 
+#%% True entries logic
+data_initial_index_list = data_initial.index.tolist()
+true_entries_list = []
+for ep_idx in entry_points:
+    current_pos = data_initial_index_list.index(ep_idx)
+    true_entries_list.append(data_initial_index_list[current_pos + 1])
 
+entry_points = true_entries_list
+del data_initial_index_list, current_pos, data_initial, true_entries_list   #free up some mem
 
 #%% Single scenario simulation: Set trade values for simulation
 trade_size = 1000
 stop_loss = 0.1
-take_profit = 0.2
+take_profit = 0.1
 leverage=20
 
-trade_type = 'Long'
+trade_type = 'Short'
 
 
 results = []
@@ -124,8 +132,8 @@ leverages = simulation.get_array(10, 20, 5)
 print(f'Stop Losses: {stop_losses}\nTake Profits: {take_profits}\nLeverages: {leverages}')
 
 slippage=False
-trade_type = 'Short'
-strategy_name = 'b_4.2'
+trade_type = 'Long'
+strategy_name = 'b_4.4.2'
 
 sim_results = []
 scenario_results = []

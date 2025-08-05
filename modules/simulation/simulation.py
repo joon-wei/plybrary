@@ -55,7 +55,7 @@ def add_long_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_prof
     
     if trade_start in df.index:
         df.loc[trade_start,'trade_position'] = trade_size * leverage
-        entry_price = df.loc[trade_start,'Close']
+        entry_price = df.loc[trade_start,'Open']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
         print(f'Entry_price: {entry_price}')
@@ -155,7 +155,7 @@ def add_short_sltp_fees_graph(df, trade_size, trade_start, stop_loss=1, take_pro
     
     if trade_start in df.index:
         df.loc[trade_start,'trade_position'] = trade_size * leverage
-        entry_price = df.loc[trade_start,'Close']
+        entry_price = df.loc[trade_start,'Open']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
         print(f'Entry_price: {entry_price}')
@@ -260,7 +260,7 @@ def add_long_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1, 
     
     if trade_start in df.index:
         df.loc[trade_start,'trade_position'] = trade_size * leverage
-        entry_price = df.loc[trade_start,'Close']
+        entry_price = df.loc[trade_start,'Open']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
         #print(f'Entry_price: {entry_price}')
@@ -345,7 +345,7 @@ def add_short_sltp_fees(df, trade_size, trade_start, stop_loss=1, take_profit=1,
     
     if trade_start in df.index:
         df.loc[trade_start,'trade_position'] = trade_size * leverage
-        entry_price = df.loc[trade_start,'Close']
+        entry_price = df.loc[trade_start,'Open']
         units = (trade_size*leverage)/entry_price
         df['units'] = units
         #print(f'Entry_price: {entry_price}')
