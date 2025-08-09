@@ -114,6 +114,8 @@ shoe, last_card = create_deck(no_of_decks=8)
 capital = int(input('Capital: '))
 initial_capital = capital
 
+print('Burn round',play_round(shoe),'\n')
+
 #%%
 while len(shoe) > last_card:
     
@@ -121,11 +123,12 @@ while len(shoe) > last_card:
         print('ur out')
         break
     
-    print(f'------------\nRound Start\n------------\nAvailable capital: {capital}')
+    print(f'------------\nRound Start\n------------\nCard remaining {len(shoe)}\nAvailable capital: ${capital}')
     user_bet_type = bet_type()
     user_bet_amount = bet_amount()
     capital -= user_bet_amount
     
+    print()
     player_hand, banker_hand = play_round(shoe)
     winner = calc_winner(player_hand,banker_hand)
     
@@ -135,4 +138,4 @@ while len(shoe) > last_card:
     print()
 
 earnings = capital - initial_capital
-print(f'Earnings: {earnings}')
+print(f'Earnings: $ {earnings}')
