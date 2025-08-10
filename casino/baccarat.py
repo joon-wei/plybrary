@@ -81,6 +81,10 @@ def bet_type():
             break
         elif user_bet_type.lower() == 't':
             break
+        elif user_bet_type.lower() == 'x':
+        	break
+        elif user_bet_type.lower() == 'c':
+        	break
         else:
             print('Enter a valid bet type')
     return user_bet_type
@@ -108,14 +112,23 @@ card_values = {
     '7': 7, '8': 8, '9': 9, '10': 0, 'J': 0, 'Q': 0, 'K': 0
 }
 
+instructions = '''
+Welcome addict. Bet types:
+	b - Banker
+	p - Player
+	t - Tie
+	x - Pass round
+	C - Cash out
 
+Enter your initial capital and start playing!
+'''
 #%% Game setup
+print(instructions)
 shoe, last_card = create_deck(no_of_decks=8)
 capital = int(input('Capital: '))
 initial_capital = capital
 
 print('Burn round',play_round(shoe),'\n')
-
 #%%
 while len(shoe) > last_card:
     
@@ -125,7 +138,17 @@ while len(shoe) > last_card:
     
     print(f'------------\nRound Start\n------------\nCard remaining {len(shoe)}\nAvailable capital: ${capital}')
     user_bet_type = bet_type()
-    user_bet_amount = bet_amount()
+    if user_bet_type == 'x':
+    	user_bet_amount = 0
+    elif user_bet_type == 'c':
+    	user_cfm = input("Cash out? 'yes' to confirm: ")
+    	if user_cfm.lower() == 'yes':
+    		break
+    	else:
+    		user_bet_amount = 0
+    		print('This round will be passed')
+    else:
+    	user_bet_amount = bet_amount()
     capital -= user_bet_amount
     
     print()
@@ -134,7 +157,8 @@ while len(shoe) > last_card:
     
     if winner == user_bet_type:
         capital += user_bet_amount * 2
-    
+    elif winner == 't':
+    	capital += user_bet_amount
     print()
 
 earnings = capital - initial_capital

@@ -213,4 +213,20 @@ def insert_toto_data(dataframe):
     conn.commit()
     conn.close()
     print('Insert into toto successful.')
+
+def insert_baccarat_montecarlo(dataframe):
+    conn = sqlite3.connect(db_dir)
+    cursor = conn.cursor()
     
+    data_tuples = [tuple(x) for x in dataframe.to_numpy()]
+    
+    insert_query = '''
+    INSERT INTO casino_baccarat_simulation (SimulationRunDate,GameNo,TotalDecksUsed,RedCardLowerBound,RedCardUpperBound,
+                                            Round,PlayerHand_1,PlayerHand_2,PlayerHand_3,BankerHand_1,BankerHand_2,BankerHand_3,Winner)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+    '''
+    
+    cursor.executemany(insert_query,data_tuples)
+    conn.commit()
+    conn.close()
+    print('Insert into casino_baccarat_simulation successful.')
