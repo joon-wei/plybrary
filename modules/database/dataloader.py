@@ -24,6 +24,12 @@ def get_datetime(unix_timecode,modifier):
         time = time = pd.to_datetime(unix_timecode, unit='ms')
     return time
 
+def custom_query(query):
+    conn = sqlite3.connect(db_dir)
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
 # =====================
 # crypto functions
 # =====================
