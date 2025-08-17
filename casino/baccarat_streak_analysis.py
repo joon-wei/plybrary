@@ -9,19 +9,19 @@ Run dates available
 2025-08-17 00:31:02
 '''
 #%%
-game_no_start = 1
-game_no_end = 100
-simulation_run_date = '2025-08-17 00:31:02'
+game_no_start = 2
+game_no_end = 2
+simulation_run_date = '2025-08-10 22:41:29'
 query = '''
 select * from casino_baccarat_simulation WHERE SimulationRunDate = '{}' and GameNo >= {} and GameNo <= {} order by [GameNo], [Round]
 '''.format(simulation_run_date,game_no_start,game_no_end)
 
-df_all = database.custom_query(query)
+df_graph = database.custom_query(query)
 
 #%% Multple 
 summary = []
-for game in df_all['GameNo'].unique():
-    df = df_all[df_all['GameNo'] == game]
+for game in df_graph['GameNo'].unique():
+    df = df_graph[df_graph['GameNo'] == game]
     
     streaks = []
     prev = df['Winner'].iloc[0]
@@ -68,10 +68,10 @@ for game in df_all['GameNo'].unique():
 # freq.plot(kind='bar',grid=True)
 # plt.xlabel('Streak Length')
 # plt.ylabel('Frequency')
-# plt.title(f'Max streaks among {len(df_all["GameNo"].unique())} games | Sim: {simulation_run_date}')
+# plt.title(f'Max streaks among {len(df_graph["GameNo"].unique())} games | Sim: {simulation_run_date}')
 
 #%% Plot single
-df = df_all[df_all['GameNo'] == 58]
+df = df_graph[df_graph['GameNo'] == 2]
 
 streaks = []
 prev = df['Winner'].iloc[0]
@@ -97,6 +97,6 @@ ax.set_xticklabels(streak_df['Outcome'], rotation=90)
 ax.set_ylim(0,15)
 ax.set_ylabel('Streak Length')
 ax.set_xlabel('Streak Order')
-ax.set_title(f'Game: {game_no}')
+# ax.set_title(f'Game: {game_no}')
 
 plt.show()
